@@ -1,0 +1,456 @@
+"""
+Módulo de Rutas de Flask
+-----------------------
+Este archivo define todas las URLs de la aplicación, la lógica de negocio,
+y el control de acceso basado en roles y límite de intentos de login.
+"""
+
+# --- Importaciones ---
+import os
+from datetime import datetime
+from functools import wraps
+from flask import (
+    render_template, request, redirect, url_for,
+    flash, session, send_file, send_from_directory
+)
+from app import app
+from app import database_manager as db
+from mysql.connector import IntegrityError, Error as DB_Error
+from werkzeug.security import check_password_hash
+
+# --- Configuración y Constantes ---
+RECORDS_PER_PAGE = 5
+
+# --- Configuración de Seguridad de Login ---
+failed_logins = {}  # Diccionario en memoria para rastrear fallos por IP
+LOGIN_ATTEMPT_LIMIT = 5  # Intentos máximos antes de bloquear
+LOCKOUT_TIME_SECONDS = 300  # 5 minutos de bloqueo
+
+# Diccionario de usuarios con roles definidos
+USERS = {
+    'admin':      {'password_hash': 'scrypt:32768:8:1$WFi0YBN2qCDwBgWJ$be6ca3584230b85b3b4fdbba30a11bf25d0b30fd525ac6c1a83708edf7401d9300ab2e3388eee7835ce47534dbfcdb4458b538db90ec960ef3852f793c869b47', 'full_name': 'Administrador',   'role': 'admin'},
+    'lud_rojas':  {'password_hash': 'scrypt:32768:8:1$4Dc8HIUCPu0LkrYZ$60b205b9a1f98687a869cd0905efd50c02a4be5ad34b0e2954fa140f0a56317da4c4b1748e5fc87b983d032d915439f7c60a37d617d977452bf5b4de0aca1d72',       'full_name': 'Lud Rojas',       'role': 'equipo'},
+    'ruth_lecca': {'password_hash': 'scrypt:32768:8:1$4Dc8HIUCPu0LkrYZ$60b205b9a1f98687a869cd0905efd50c02a4be5ad34b0e2954fa140f0a56317da4c4b1748e5fc87b983d032d915439f7c60a37d617d977452bf5b4de0aca1d72',       'full_name': 'Ruth Lecca',      'role': 'equipo'},
+    'rafa_diaz':  {'password_hash': 'scrypt:32768:8:1$4Dc8HIUCPu0LkrYZ$60b205b9a1f98687a869cd0905efd50c02a4be5ad34b0e2954fa140f0a56317da4c4b1748e5fc87b983d032d915439f7c60a37d617d977452bf5b4de0aca1d72', 'full_name': 'Rafael Díaz',     'role': 'atencion_cliente'}
+}
+
+HEADERS = [
+    "FECHA", "CLIENTE", "CELULAR", "ESPECIALIDAD", "MODALIDAD", "CUOTA",
+    "TIPO DE CUOTA", "BANCO", "DESTINO", "N° OPERACIÓN", "DNI", "CORREO",
+    "GÉNERO", "ASESOR"
+]
+FIELDS = [
+    "fecha", "cliente", "celular", "especialidad", "modalidad", "cuota",
+    "tipo_de_cuota", "banco", "destino", "numero_operacion", "dni",
+    "correo", "genero", "asesor"
+]
+
+# --- Decoradores de Autenticación ---
+
+# Decorador para proteger rutas que requieren login
+def login_required(f):
+    """Decorador para proteger rutas, asegurando que el usuario haya iniciado sesión."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            flash('Debes iniciar sesión para ver esta página.', 'error')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# --- Rutas de Sesión (Login/Logout) ---
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """
+    Maneja el inicio de sesión de usuarios, usando hasheo de contraseñas
+    y un sistema de bloqueo por intentos fallidos para prevenir ataques de fuerza bruta.
+    """
+    ip_usuario = request.remote_addr
+
+    # 1. VERIFICAR SI LA IP ESTÁ BLOQUEADA
+    if ip_usuario in failed_logins:
+        user_failures = failed_logins[ip_usuario]
+        elapsed_time = (datetime.now() - user_failures['last_attempt_time']).total_seconds()
+
+        if user_failures['attempts'] >= LOGIN_ATTEMPT_LIMIT and elapsed_time < LOCKOUT_TIME_SECONDS:
+            tiempo_restante = round((LOCKOUT_TIME_SECONDS - elapsed_time) / 60)
+            flash(f"Demasiados intentos fallidos. Por favor, espera {tiempo_restante} minutos.", "error")
+            return render_template("login.html")
+        
+        if elapsed_time >= LOCKOUT_TIME_SECONDS:
+            failed_logins.pop(ip_usuario, None)
+
+    # 2. PROCESAR EL INTENTO DE LOGIN
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password") # Contraseña en texto plano que envía el usuario
+        user_data = USERS.get(username)
+        
+        # --- CAMBIO CLAVE: CÓMO SE VERIFICA LA CONTRASEÑA ---
+        if user_data and check_password_hash(user_data['password_hash'], password):
+            # --- LOGIN EXITOSO ---
+            failed_logins.pop(ip_usuario, None)  # Limpia el registro de fallos
+            
+            session['logged_in'] = True
+            session['full_name'] = user_data['full_name']
+            session['username'] = username
+            session['role'] = user_data['role']
+            
+            db.registrar_auditoria(user_data['full_name'], "INICIO_SESION_EXITOSO", ip_usuario)
+            flash("Has iniciado sesión correctamente.", "success")
+            return redirect(url_for("index"))
+        else:
+            # --- LOGIN FALLIDO ---
+            if ip_usuario not in failed_logins:
+                failed_logins[ip_usuario] = {'attempts': 0, 'last_attempt_time': datetime.now()}
+            
+            failed_logins[ip_usuario]['attempts'] += 1
+            failed_logins[ip_usuario]['last_attempt_time'] = datetime.now()
+            
+            intentos_restantes = LOGIN_ATTEMPT_LIMIT - failed_logins[ip_usuario]['attempts']
+            db.registrar_auditoria(username, "INICIO_SESION_FALLIDO", ip_usuario)
+            
+            if intentos_restantes > 0:
+                flash(f"Credenciales incorrectas. Te quedan {intentos_restantes} intentos.", "error")
+            else:
+                flash("Demasiados intentos fallidos. Tu acceso ha sido bloqueado por 5 minutos.", "error")
+            
+    return render_template("login.html")
+
+@app.route("/logout")
+@login_required
+def logout():
+    """Cierra la sesión del usuario y registra el evento."""
+    usuario_actual = session.get('full_name', 'desconocido')
+    ip_usuario = request.remote_addr
+    db.registrar_auditoria(usuario_actual, "CIERRE_SESION", ip_usuario)
+
+    session.clear()
+    flash("Has cerrado la sesión.", "success")
+    return redirect(url_for('login'))
+
+# --- Rutas Principales de la Aplicación ---
+
+# --- Ruta del Dashboard ---
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    """Muestra el panel principal con estadísticas y registros recientes."""
+    # Redirige a los de atención al cliente a su única página permitida
+    if session.get('role') == 'atencion_cliente':
+        return redirect(url_for('consulta'))
+
+    try:
+        estadisticas = db.obtener_estadisticas_dashboard()
+        ultimos_pagos = db.obtener_ultimos_pagos(5)
+    except DB_Error as e:
+        flash(f"Error al cargar los datos del dashboard: {e}", "error")
+        estadisticas = {'registros_hoy': 0, 'ingresos_hoy': 0, 'ingresos_mes': 0}
+        ultimos_pagos = []
+
+    return render_template(
+        "dashboard.html", 
+        stats=estadisticas, 
+        pagos=ultimos_pagos
+    )
+
+# Rutas de Gestión de Pagos y Clientes ---
+@app.route("/")
+@login_required
+def index():
+    """Página principal (Dashboard). Muestra estadísticas y registros recientes."""
+    if session.get('role') == 'atencion_cliente':
+        return redirect(url_for('consulta'))
+    try:
+        estadisticas = db.obtener_estadisticas_dashboard()
+        ultimos_pagos = db.obtener_ultimos_pagos(5)
+    except DB_Error as e:
+        flash(f"Error al cargar los datos del dashboard: {e}", "error")
+        estadisticas = {'registros_hoy': 0, 'ingresos_hoy': 0, 'ingresos_mes': 0}
+        ultimos_pagos = []
+    return render_template("dashboard.html", stats=estadisticas, pagos=ultimos_pagos)
+
+# --- Rutas de Gestión de Pagos y Clientes ---
+@app.route("/registrar", methods=['GET'])
+@login_required
+def registrar():
+    """Muestra la página con el formulario de registro."""
+    if session.get('role') == 'atencion_cliente':
+        flash("Acceso no autorizado.", "error")
+        return redirect(url_for('consulta'))
+    return render_template("index.html")
+
+# --- Manejo de Formularios y Operaciones CRUD ---
+@app.route("/submit", methods=["POST"])
+@login_required
+def submit():
+    """Procesa los datos del formulario de nuevo registro."""
+    if session.get('role') == 'atencion_cliente':
+        flash("Acceso no autorizado.", "error")
+        return redirect(url_for('consulta'))
+        
+    form_data = request.form.to_dict()
+    try:
+        # (Validación de fecha)
+        fecha_str = form_data.get('fecha')
+        if not fecha_str:
+            flash("La fecha es un campo obligatorio.", "error")
+            return redirect(url_for("registrar")) # Redirige al formulario de registro
+        try:
+            form_data['fecha'] = datetime.strptime(fecha_str, '%Y-%m-%d')
+        except ValueError:
+            flash("El formato de la fecha es incorrecto. Por favor, usa AAAA-MM-DD.", "error")
+            return redirect(url_for("registrar")) # Redirige al formulario de registro
+        
+        # (Lógica de base de datos)
+        cliente_id = db.buscar_o_crear_cliente(form_data)
+        form_data['numero_operacion'] = form_data.pop('num_operacion', None)
+        
+        nuevo_pago_id = db.crear_pago(cliente_id, form_data)
+        flash("Registro guardado correctamente.", "success")
+
+        # (Auditoría)
+        usuario_actual = session.get('full_name', 'desconocido')
+        ip_usuario = request.remote_addr
+        detalles = f"Cliente ID: {cliente_id}, Pago ID: {nuevo_pago_id}"
+        db.registrar_auditoria(usuario_actual, "CREAR_PAGO", ip_usuario, "pagos", nuevo_pago_id, detalles)
+
+    except IntegrityError:
+        flash("Error: El DNI, correo o N° de Operación ingresado ya existe en otro registro.", "error")
+    except DB_Error as e:
+        flash(f"Error al guardar el registro: {e}", "error")
+    
+    # Al terminar, redirige de vuelta al formulario de registro
+    return redirect(url_for("registrar"))
+
+# Página de consulta con paginación
+@app.route("/consulta", methods=["GET"])
+@login_required
+def consulta():
+    """Muestra la página de consulta y los resultados de búsqueda con paginación."""
+    query = request.args.get("query", "").strip().lower()
+    page = request.args.get('page', 1, type=int)
+    
+    resultados_paginados = []
+    total_pages = 1
+    
+    try:
+        # La función buscar_pagos_completos con un query vacío devolverá todos los registros.
+        todos_los_resultados = db.buscar_pagos_completos(query)
+        
+        # Aplicamos la paginación a los resultados (sean todos o filtrados)
+        total_records = len(todos_los_resultados)
+        total_pages = (total_records + RECORDS_PER_PAGE - 1) // RECORDS_PER_PAGE if RECORDS_PER_PAGE > 0 else 1
+        start_index = (page - 1) * RECORDS_PER_PAGE
+        end_index = start_index + RECORDS_PER_PAGE
+        resultados_paginados = todos_los_resultados[start_index:end_index]
+        
+    except DB_Error as e:
+        flash(f"Error al consultar la base de datos: {e}", "error")
+        
+    headers_db = ["ID"] + HEADERS
+    return render_template(
+        "consulta.html", 
+        resultados=resultados_paginados, 
+        headers=headers_db,
+        page=page,
+        total_pages=total_pages,
+        query=query  # Pasamos el query para mantenerlo en los enlaces de paginación
+    )
+    
+# Edición de un pago existente
+@app.route("/editar/<int:id>", methods=["GET", "POST"])
+@login_required
+def editar(id):
+    """Edición de un pago. Accesible para todos los roles."""
+    if request.method == "POST":
+        form_data = request.form.to_dict()
+        try:
+            db.actualizar_pago(id, form_data)
+            flash("Pago actualizado correctamente.", "success")
+            
+            usuario_actual = session.get('full_name', 'desconocido')
+            ip_usuario = request.remote_addr
+            db.registrar_auditoria(usuario_actual, "EDITAR_PAGO", ip_usuario, "pagos", id)
+        except DB_Error as e:
+            flash(f"Error al actualizar el pago: {e}", "error")
+        return redirect(url_for("consulta", query=form_data.get("query", "")))
+    
+    data = db.obtener_pago_por_id(id)
+    labels_and_fields = list(zip(HEADERS, FIELDS))
+    return render_template("editar.html", data=data, labels_and_fields=labels_and_fields, id=id, query=request.args.get('query', ''))
+
+# Renovación de pago (crear un nuevo pago basado en uno existente)
+@app.route("/actualizar_pago/<int:id>", methods=["GET", "POST"])
+@login_required
+def actualizar_pago(id):
+    """Renovación de pago. Restringido a admin y equipo."""
+    if session.get('role') == 'atencion_cliente':
+        flash("Acceso no autorizado.", "error")
+        return redirect(url_for('consulta'))
+    if request.method == "POST":
+        try:
+            pago_original = db.obtener_pago_por_id(id)
+            if not pago_original:
+                flash("Error: No se encontró el registro original.", "error")
+                return redirect(url_for("consulta"))
+
+            cliente_id = pago_original['cliente_id']
+            datos_nuevo_pago = request.form.to_dict()
+            datos_nuevo_pago['fecha'] = datetime.now()
+            datos_nuevo_pago['numero_operacion'] = datos_nuevo_pago.pop('num_operacion', None)
+            
+            # Completamos datos que no vienen en el formulario simple de pago
+            datos_nuevo_pago['especialidad'] = pago_original['especialidad']
+            datos_nuevo_pago['modalidad'] = pago_original['modalidad']
+            datos_nuevo_pago['asesor'] = pago_original['asesor']
+            
+            nuevo_pago_id = db.crear_pago(cliente_id, datos_nuevo_pago)
+            flash("Renovación de pago registrada exitosamente.", "success")
+            
+            usuario_actual = session.get('full_name', 'desconocido')
+            ip_usuario = request.remote_addr
+            detalles = f"Cliente ID: {cliente_id}, Pago ID: {nuevo_pago_id} (RENOVACIÓN)"
+            db.registrar_auditoria(usuario_actual, "RENOVAR_PAGO", ip_usuario, "pagos", nuevo_pago_id, detalles)
+
+            return redirect(url_for("consulta", query=request.args.get('query', '')))
+        except DB_Error as e:
+            flash(f"Error al procesar el pago: {e}", "error")
+            return redirect(url_for("consulta", query=request.args.get('query', '')))
+    
+    datos_pago_actual = db.obtener_pago_por_id(id)
+    return render_template("actualizar_pago.html", data=datos_pago_actual, id=id, query=request.args.get('query', ''))
+
+#   Eliminar un cliente (borrado lógico)
+@app.route("/eliminar", methods=["POST"])
+@login_required
+def eliminar():
+    """Desactiva un cliente (borrado lógico). Restringido a admin y equipo."""
+    if session.get('role') == 'atencion_cliente':
+        flash("Acceso no autorizado.", "error")
+        return redirect(url_for('consulta'))
+
+    pago_id = int(request.form.get("id"))
+    query = request.form.get("query", "")
+    try:
+        pago = db.obtener_pago_por_id(pago_id)
+        if pago:
+            cliente_id = pago['cliente_id']
+            db.cambiar_estado_cliente(cliente_id, 'inactivo')
+            flash("Cliente desactivado correctamente. Ya no aparecerá en las búsquedas.", "success")
+
+            usuario_actual = session.get('full_name', 'desconocido')
+            ip_usuario = request.remote_addr
+            db.registrar_auditoria(usuario_actual, "DESACTIVAR_CLIENTE", ip_usuario, "clientes", cliente_id)
+        else:
+            flash("Error: No se encontró el pago asociado.", "error")
+    except DB_Error as e:
+        flash(f"Error: No se pudo desactivar al cliente: {e}", "error")
+    return redirect(url_for("consulta", query=query))
+
+
+# --- Rutas de Reportes y Administración ---
+
+@app.route("/reportes")
+@login_required
+def reportes():
+    """Página de reportes. Restringida a admin y equipo."""
+    if session.get('role') == 'atencion_cliente':
+        flash("Acceso no autorizado.", "error")
+        return redirect(url_for('consulta'))
+    # ... (el resto del código de la función se queda igual) ...
+    try:
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        page = request.args.get('page', 1, type=int)
+
+        reporte_completo_db = db.generar_reporte_asesores_db(start_date, end_date)
+        
+        total_records = len(reporte_completo_db)
+        total_pages = (total_records + RECORDS_PER_PAGE - 1) // RECORDS_PER_PAGE if RECORDS_PER_PAGE > 0 else 1
+        start_index = (page - 1) * RECORDS_PER_PAGE
+        end_index = start_index + RECORDS_PER_PAGE
+        reporte_paginado_db = reporte_completo_db[start_index:end_index]
+
+        total_general_ventas = sum(item.get('total_asesor', 0) or 0 for item in reporte_completo_db)
+        total_general_registros = sum(item.get('registros_asesor', 0) for item in reporte_completo_db)
+        page_total_ventas = sum(item.get('total_asesor', 0) or 0 for item in reporte_paginado_db)
+        page_total_registros = sum(item.get('registros_asesor', 0) for item in reporte_paginado_db)
+        
+        reporte_para_plantilla = [(item['asesor'], item) for item in reporte_paginado_db]
+        
+        return render_template(
+            "reportes.html", reporte=reporte_para_plantilla, total_ventas=total_general_ventas,
+            total_registros=total_general_registros, start_date=start_date, end_date=end_date,
+            page=page, total_pages=total_pages, page_total_ventas=page_total_ventas,
+            page_total_registros=page_total_registros
+        )
+    except DB_Error as e:
+        flash(f"Error al generar el reporte: {e}", "error")
+        return render_template("reportes.html", reporte=[])
+
+
+@app.route("/descargar")
+@login_required
+def descargar():
+    """Descarga de Excel. Restringida a admin y equipo."""
+    if session.get('role') == 'atencion_cliente':
+        flash("Acceso no autorizado.", "error")
+        return redirect(url_for('consulta'))
+    # ... (el resto del código de la función se queda igual) ...
+    try:
+        output = db.generar_excel_dinamico(HEADERS)
+        if output:
+            return send_file(
+                output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                as_attachment=True, download_name='registros_db.xlsx'
+            )
+        else:
+            flash("Error al generar el archivo Excel.", "error")
+            return redirect(url_for('index'))
+    except DB_Error as e:
+        flash(f"Error al generar el archivo Excel: {e}", "error")
+        return redirect(url_for('index'))
+
+# --- Rutas de Auditoría ---
+@app.route("/auditoria")
+@login_required
+def auditoria():
+    """Muestra el log de auditoría completo (solo para administradores)."""
+    if session.get('username') != 'admin':
+        flash("Acceso no autorizado.", "error")
+        return redirect(url_for('index'))
+
+    try:
+        # Simplemente obtenemos todos los logs y los pasamos directamente
+        todos_los_logs = db.leer_log_auditoria()
+        return render_template("auditoria.html", logs=todos_los_logs)
+        
+    except DB_Error as e:
+        flash(f"Error al leer la auditoría: {e}", "error")
+        return render_template("auditoria.html", logs=[])
+
+# --- Rutas de Perfil de Cliente ---    
+@app.route("/cliente/<int:cliente_id>")
+@login_required
+def perfil_cliente(cliente_id):
+    """Muestra el perfil de un cliente y su historial de pagos."""
+    try:
+        cliente = db.obtener_cliente_por_id(cliente_id)
+        pagos = db.obtener_pagos_por_cliente(cliente_id)
+        
+        if not cliente:
+            flash("Error: Cliente no encontrado.", "error")
+            return redirect(url_for('consulta'))
+            
+        return render_template("perfil_cliente.html", cliente=cliente, pagos=pagos)
+    except DB_Error as e:
+        flash(f"Error al cargar el perfil del cliente: {e}", "error")
+        return redirect(url_for('consulta'))
+
+# --- Ruta del Favicon ---
+@app.route('/favicon.ico')
+def favicon():
+    """Sirve el ícono de la aplicación."""
+    return send_from_directory(os.path.join(app.root_path, 'static', 'images'), 'icon.png', mimetype='image/png')

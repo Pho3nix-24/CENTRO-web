@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Ventas{% endblock %}
+
+{% block content %}
+    <h2>Reporte de Ventas por Asesor</h2>
+
+    <div class="report-controls">
+        <form method="GET" action="{{ url_for('reportes') }}" class="date-filter-form">
+            <label for="start_date">Desde:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date or '' }}">
+            <label for="end_date">Hasta:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date or '' }}">
+            <button type="submit">Filtrar</button>
+        </form>
+    </div>
+
+    {% if reporte %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Asesor</th>
+                        <th>N° de Registros</th>
+                        <th>Subtotal de Ventas (S/)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asesor, data in reporte %}
+                        <tr>
+                            <td>{{ asesor }}</td>
+                            <td>{{ data.registros_asesor }}</td>
+                            <td>S/ {{ "%.2f"|format(data.total_asesor) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+    <!--           <tr class="subtotal-pagina">
+                        <th>Subtotal en esta página</th>
+                        <th>{{ page_total_registros }}</th>
+                        <th>S/ {{ "%.2f"|format(page_total_ventas) }}</th>
+                    </tr> -->
+                    <tr class="total-general">
+                        <th>TOTAL GENERAL</th>
+                        <th>{{ total_registros }}</th>
+                        <th>S/ {{ "%.2f"|format(total_ventas) }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="{{ url_for('reportes', page=page - 1, start_date=start_date, end_date=end_date) }}" class="page-link">Anterior</a>
+            {% else %}
+                <span class="page-link disabled">Anterior</span>
+            {% endif %}
+            
+            <span class="page-info">Página {{ page }} de {{ total_pages }}</span>
+            
+            {% if page < total_pages %}
+                <a href="{{ url_for('reportes', page=page + 1, start_date=start_date, end_date=end_date) }}" class="page-link">Siguiente</a>
+            {% else %}
+                <span class="page-link disabled">Siguiente</span>
+            {% endif %}
+        </div>
+        
+    {% else %}
+        <p class="message">No hay datos suficientes para generar un reporte.</p>
+    {% endif %}
+
+{% endblock %}

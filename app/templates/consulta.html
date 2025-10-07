@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Consulta de Pagos{% endblock %}
+
+{% block content %}
+    <h2>Consulta de Estado de Pago</h2>
+
+    <form method="GET" action="{{ url_for('consulta') }}" class="search-form">
+        <label for="dni_consulta" style="white-space:nowrap;">DNI o Cliente:</label>
+        <input type="text" id="dni_consulta" name="query" required value="{{ request.args.get('query', '') }}" />
+        <button type="submit">Buscar</button>
+        <a href="{{ url_for('consulta') }}" class="btn-secondary">Ver Todos</a>
+    </form>
+
+    {% if resultados %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        {% for h in headers %}
+                            <th>{{ h }}</th>
+                        {% endfor %}
+                        <th>ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fila in resultados %}
+                        <tr>
+                            <td>{{ fila[0] }}</td> <td>{{ fila[1].strftime('%Y-%m-%d') if fila[1] else '' }}</td> <td>
+                                <a href="{{ url_for('perfil_cliente', cliente_id=fila[15]) }}">{{ fila[2] }}</a>
+                            </td>
+                            
+                            {% for celda in fila[3:15] %}
+                                <td>{{ celda if celda is not none else '' }}</td>
+                            {% endfor %}
+                            
+                            <td class="actions">
+                                {% if session.get('role') in ['admin', 'equipo'] %}
+                                    <a href="{{ url_for('actualizar_pago', id=fila[0], query=request.args.get('query', '')) }}" class="action-icon" title="Actualizar Pago">🔄</a>
+                                {% endif %}
+                                
+                                <a href="{{ url_for('editar', id=fila[0], query=request.args.get('query', '')) }}" class="action-icon" title="Editar Registro">✏️</a>
+                                
+                                {% if session.get('role') in ['admin', 'equipo'] %}
+                                    <form action="{{ url_for('eliminar') }}" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este registro?');">
+                                        <input type="hidden" name="id" value="{{ fila[0] }}">
+                                        <input type="hidden" name="query" value="{{ request.args.get('query', '') }}">
+                                        <button type="submit" class="action-icon-btn" title="Eliminar Registro">🗑️</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% elif query %}
+        <p class="message">No se encontraron registros para tu búsqueda.</p>
+    {% endif %}
+
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}
+            <a href="{{ url_for('consulta', query=query, page=page - 1) }}" class="page-link">Anterior</a>
+        {% else %}
+            <span class="page-link disabled">Anterior</span>
+        {% endif %}
+        
+        <span class="page-info">Página {{ page }} de {{ total_pages }}</span>
+        
+        {% if page < total_pages %}
+            <a href="{{ url_for('consulta', query=query, page=page + 1) }}" class="page-link">Siguiente</a>
+        {% else %}
+            <span class="page-link disabled">Siguiente</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h2>Panel de Control</h2>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <h3>Registros (Hoy)</h3>
+            <p>{{ stats.registros_hoy }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Ingresos (Hoy)</h3>
+            <p>S/ {{ "%.2f"|format(stats.ingresos_hoy or 0) }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Ingresos (Mes)</h3>
+            <p>S/ {{ "%.2f"|format(stats.ingresos_mes or 0) }}</p>
+        </div>
+    </div>
+
+    <h3>Últimos 5 Registros</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>DNI</th>
+                    <th>Especialidad</th>
+                    <th>Cuota</th>
+                    <th>Asesor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                    <tr>
+                        <td>{{ pago[0] }}</td>
+                        <td>{{ pago[1].strftime('%Y-%m-%d') if pago[1] }}</td>
+                        <td>{{ pago[2] }}</td>
+                        <td>{{ pago[11] }}</td> <td>{{ pago[4] }}</td>
+                        <td>S/ {{ "%.2f"|format(pago[6] or 0) }}</td>
+                        <td>{{ pago[14] }}</td> </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center;">No hay registros recientes.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

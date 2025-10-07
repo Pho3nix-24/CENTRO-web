@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Registro Docente{% endblock %}
+
+{% block content %}
+    <h2>Registro Docente</h2>
+    <form method="POST" action="{{ url_for('submit') }}">
+        <label for="fecha">Fecha de pago</label>
+        <input type="date" id="fecha" name="fecha" required />
+
+        <label for="cliente">Cliente</label>
+        <input type="text" id="cliente" name="cliente" />
+
+        <label for="celular">Celular</label>
+        <input type="tel" pattern="[0-9]{9}" title="Ingrese un número de celular válido (9 dígitos)" id="celular" name="celular" />
+
+        <label for="especialidad">Especialidad</label>
+        <select id="especialidad" name="especialidad" >
+            <option value="">Seleccione</option>
+            <option value="CSS">CSS</option>
+            <option value="CYT">CYT</option>
+            <option value="Comunicación">Comunicación</option>
+            <option value="DPCC">DPCC</option>
+            <option value="Ed. Física">Ed. Física</option>
+            <option value="Matemática">Matemática</option>
+            <option value="Inicial">Inicial</option>
+            <option value="Primaria">Primaria</option>
+        </select>
+
+        <label for="modalidad">Modalidad</label>
+        <select id="modalidad" name="modalidad" >
+            <option value="">Seleccione</option>
+            <option value="Nombramiento">Nombramiento</option>
+            <option value="Ascenso">Ascenso</option>
+            <option value="Ascenso + Cargos">Ascenso + Cargos</option>
+            <option value="Cargos directivos">Cargos directivos</option>
+            <option value="Maratón">Maratón</option>
+            <option value="Maratón + Ascenso">Maratón + Ascenso</option>
+        </select>
+
+        <label for="cuota">Cuota</label>
+        <input type="number" id="cuota" name="cuota" min="0" step="0.01" />
+
+        <label for="tipo_cuota">Tipo de Cuota</label>
+        <select id="tipo_cuota" name="tipo_cuota" >
+            <option value="">Seleccione</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="Completo">Completo</option>
+        </select>
+
+        <label for="banco">Banco/Entidad/Yape/Plin</label>
+        <input type="text" id="banco" name="banco" />
+
+        <label for="destino">Destino</label>
+        <select id="destino" name="destino" >
+            <option value="">Seleccione</option>
+            <option value="Laly">Laly</option>
+            <option value="Darcing">Darcing</option>
+            <option value="CECP">CECP</option>
+            <option value="Keila">Keila</option>
+        </select>
+
+        <label for="num_operacion">N° Operación</label>
+        <input type="text" id="num_operacion" name="num_operacion" required />
+
+        <label for="dni">DNI</label>
+        <input type="text" pattern="[0-9]{8}" title="Ingrese un DNI válido (8 dígitos)" id="dni" name="dni" />
+
+        <label for="correo">Correo</label>
+        <input type="email" id="correo" name="correo" />
+
+        <label for="genero">Género</label>
+        <select id="genero" name="genero" >
+            <option value="">Seleccione</option>
+            <option value="Masculino">M</option>
+            <option value="Femenino">F</option>
+            <option value="Otro">Otro</option>
+        </select>
+
+        <label for="asesor">Asesor(a)</label>
+        <input type="text" id="asesor" name="asesor" />
+
+        <button type="submit">Guardar Registro</button>
+    </form>
+{% endblock %}

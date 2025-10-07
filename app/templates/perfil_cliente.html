@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil de {{ cliente.nombre }}{% endblock %}
+
+{% block content %}
+    <h2>Perfil del Cliente</h2>
+
+    <div class="profile-card">
+        <h3>{{ cliente.nombre }}</h3>
+        <p><strong>DNI:</strong> {{ cliente.dni }}</p>
+        <p><strong>Correo:</strong> {{ cliente.correo or 'No registrado' }}</p>
+        <p><strong>Celular:</strong> {{ cliente.celular or 'No registrado' }}</p>
+        <p><strong>Género:</strong> {{ cliente.genero or 'No registrado' }}</p>
+        <p><strong>Estado:</strong> <span class="status-{{ cliente.estado }}">{{ cliente.estado|capitalize }}</span></p>
+    </div>
+
+    <h3>Historial de Pagos</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Pago</th>
+                    <th>Fecha</th>
+                    <th>Cuota</th>
+                    <th>Tipo</th>
+                    <th>N° Operación</th>
+                    <th>Especialidad</th>
+                    <th>Asesor</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                <tr>
+                    <td>{{ pago.id }}</td>
+                    <td>{{ pago.fecha.strftime('%Y-%m-%d') if pago.fecha }}</td>
+                    <td>S/ {{ "%.2f"|format(pago.cuota or 0) }}</td>
+                    <td>{{ pago.tipo_de_cuota }}</td>
+                    <td>{{ pago.numero_operacion }}</td>
+                    <td>{{ pago.especialidad }}</td>
+                    <td>{{ pago.asesor }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('editar', id=pago.id) }}" class="action-icon" title="Editar Pago">✏️</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align:center;">Este cliente no tiene pagos registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .profile-card {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        max-width: 800px;
+        margin: 20px auto;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .profile-card h3 {
+        color: #004080;
+        margin-top: 0;
+    }
+    .profile-card p {
+        margin: 5px 0;
+    }
+    .status-activo {
+        color: green;
+        font-weight: bold;
+    }
+    .status-inactivo {
+        color: red;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Log de Auditoría{% endblock %}
+
+{% block content %}
+    <h2>Registro de Auditoría de Acceso</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Usuario</th>
+                    <th>Acción</th>
+                    <th>IP Origen</th>
+                    <th>Tabla</th>
+                    <th>ID Registro</th>
+                    <th>Detalles</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else 'N/A' }}</td>
+                        <td>{{ log.usuario_app }}</td>
+                        <td>{{ log.accion }}</td>
+                        <td>{{ log.ip_origen }}</td>
+                        <td>{{ log.tabla_afectada or 'N/A' }}</td>
+                        <td>{{ log.registro_id or 'N/A' }}</td>
+                        <td>{{ log.detalles or '' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% endblock %}

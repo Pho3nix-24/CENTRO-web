@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}Registro Docente{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/icon.png') }}">
+</head>
+<body>
+    <div class="header">
+        <div class="header-nav">
+            {% if session.get('role') in ['admin', 'equipo'] %}
+                <a href="{{ url_for('index') }}">Panel</a>
+                <a href="{{ url_for('registrar') }}">Registrar</a>
+            {% endif %}
+
+            <a href="{{ url_for('consulta') }}">Consultar</a>
+
+            {% if session.get('role') in ['admin', 'equipo'] %}
+                <a href="{{ url_for('reportes') }}">Reportes</a>
+                <a href="{{ url_for('descargar') }}">Descargar Excel</a>
+            {% endif %}
+            
+            {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('auditoria') }}">Auditoría</a>
+            {% endif %}
+        </div>
+
+        <div class="header-user-info">
+            {% if session.full_name %}
+                <span class="user-greeting">🫡 Hola, {{ session.full_name }}!</span>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </div>
+    
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block styles %}{% endblock %}
+</body>
+</html>

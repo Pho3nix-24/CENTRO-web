@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Actualizar Pago{% endblock %}
+
+{% block content %}
+    <h2>Actualizar Historial de Pago</h2>
+    <form method="POST" action="{{ url_for('actualizar_pago', id=id, query=query) }}">
+        
+        <a href="{{ url_for('consulta', query=query) }}" class="back-link">← Volver a la consulta</a>
+
+        <div class="info-cliente">
+            <h3>Cliente: {{ data.cliente }}</h3>
+            <p><strong>DNI:</strong> {{ data.dni }}</p>
+        </div>
+
+        <label for="cuota">Cuota</label>
+        <input type="number" id="cuota" name="cuota" min="0" step="0.01" value="{{ data.cuota }}" required />
+
+        <label for="tipo_cuota">Tipo de Cuota</label>
+        <select id="tipo_cuota" name="tipo_cuota" required>
+            <option value="">Seleccione</option>
+            <option value="1" {% if data.tipo_cuota == '1' %}selected{% endif %}>1</option>
+            <option value="2" {% if data.tipo_cuota == '2' %}selected{% endif %}>2</option>
+            <option value="Completo" {% if data.tipo_cuota == 'Completo' %}selected{% endif %}>Completo</option>
+        </select>
+
+        <label for="banco">Banco/Entidad/Yape/Plin</label>
+        <input type="text" id="banco" name="banco" value="{{ data.banco }}" />
+
+        <label for="destino">Destino</label>
+        <select id="destino" name="destino">
+            <option value="">Seleccione un destino</option>
+            <option value="Laly" {% if data.destino == 'Laly' %}selected{% endif %}>Laly</option>
+            <option value="Darcing" {% if data.destino == 'Darcing' %}selected{% endif %}>Darcing</option>
+            <option value="CECP" {% if data.destino == 'CECP' %}selected{% endif %}>CECP</option>
+            <option value="Keila" {% if data.destino == 'Keila' %}selected{% endif %}>Keila</option>
+        </select>
+
+        <label for="num_operacion">N° Operación</label>
+        <input type="text" id="num_operacion" name="num_operacion" value="{{ data.num_operacion }}" />
+        
+        <button type="submit">Guardar Actualización</button>
+    </form>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .info-cliente {
+        background-color: #e9ecef;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+    }
+    .info-cliente h3 {
+        margin-top: 0;
+        color: #004080;
+    }
+    .info-cliente p {
+        margin-bottom: 0;
+    }
+</style>
+{% endblock %}
