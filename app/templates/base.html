@@ -8,7 +8,11 @@
 </head>
 <body>
     <div class="header">
-        <div class="header-nav">
+    <div class="header-nav">
+        <a href="{{ url_for('menu') }}" style="font-weight: bold; color: #ffdd00;">🏠 Menú</a>
+
+        {% if not is_certificate_section %}
+            
             {% if session.get('role') in ['admin', 'equipo'] %}
                 <a href="{{ url_for('index') }}">Panel</a>
                 <a href="{{ url_for('registrar') }}">Registrar</a>
@@ -24,15 +28,17 @@
             {% if session.get('role') == 'admin' %}
                 <a href="{{ url_for('auditoria') }}">Auditoría</a>
             {% endif %}
+
+        {% endif %}
         </div>
 
-        <div class="header-user-info">
-            {% if session.full_name %}
-                <span class="user-greeting">🫡 Hola, {{ session.full_name }}!</span>
-            {% endif %}
-            <a href="{{ url_for('logout') }}" class="logout-btn">Cerrar Sesión</a>
-        </div>
+    <div class="header-user-info">
+        {% if session.full_name %}
+            <span class="user-greeting">🫡 Hola, {{ session.full_name }}!</span>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="logout-btn">Cerrar Sesión</a>
     </div>
+</div>
     
     <div class="content">
         {% with messages = get_flashed_messages(with_categories=true) %}

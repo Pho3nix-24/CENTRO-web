@@ -597,3 +597,48 @@ button[class="action-icon-btn"]:hover {
     color: #004080;
     margin-bottom: 0;
 }
+
+.hub-title {
+    text-align: center;
+    margin-bottom: 40px;
+    margin-top: 20px;
+}
+.hub-title h2 {
+    font-size: 2.8em;
+    font-weight: 900;
+    color: #333;
+    display: inline-block;
+    margin: 0 15px;
+    vertical-align: middle;
+}
+.hub-title .hub-emoji {
+    font-size: 3em;
+    vertical-align: middle;
+}
+.hub-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+.hub-card {
+    background-color: #ff6a00; /* Color naranja como en tu ejemplo */
+    padding: 35px 55px;
+    border-radius: 15px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-align: center;
+}
+.hub-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+.hub-card h3 {
+    color: white;
+    margin: 0;
+    font-size: 1.6em;
+    font-weight: 700;
+}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Consulta de Certificados{% endblock %}
+
+{% block content %}
+    <h2>Certificados y Diplomados</h2>
+
+    <form method="GET" action="{{ url_for('certificados') }}" class="search-form">
+        <label for="search_query" style="white-space:nowrap;">Buscar en Certificados:</label>
+        <input type="text" id="search_query" name="query" value="{{ query or '' }}" placeholder="Nombre, DNI, curso...">
+        <button type="submit">Buscar</button>
+        <a href="{{ url_for('certificados') }}" class="btn-secondary">Ver Todos</a>
+    </form>
+
+    {% if certificados %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        {% for header in certificados[0].keys() %}
+                            <th>{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in certificados %}
+                        <tr>
+                            {% for cell in registro.values() %}
+                                <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% elif query %}
+        <p class="message">No se encontraron certificados para tu búsqueda.</p>
+    {% else %}
+        <p class="message">No hay datos de certificados para mostrar.</p>
+    {% endif %}
+
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}
+            <a href="{{ url_for('certificados', query=query, page=page - 1) }}" class="page-link">Anterior</a>
+        {% else %}
+            <span class="page-link disabled">Anterior</span>
+        {% endif %}
+        
+        <span class="page-info">Página {{ page }} de {{ total_pages }}</span>
+        
+        {% if page < total_pages %}
+            <a href="{{ url_for('certificados', query=query, page=page + 1) }}" class="page-link">Siguiente</a>
+        {% else %}
+            <span class="page-link disabled">Siguiente</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+{% endblock %}

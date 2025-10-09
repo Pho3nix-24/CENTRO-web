@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Principal - CENTRO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/icon.png') }}">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f2f4f8;
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+        }
+        .menu-container {
+            text-align: center;
+        }
+        .menu-container h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 40px;
+        }
+        .menu-button {
+            display: inline-block;
+            padding: 20px 40px;
+            margin: 0 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+        .menu-button:hover {
+            transform: scale(1.05);
+        }
+        .ventas-btn {
+            background-color: #ff6600; /* Naranja */
+        }
+        .cert-btn {
+            background-color: #007bff; /* Azul */
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-container">
+        <h1>✅ ¿Qué quieres ver?</h1>
+        <div>
+            <a href="{{ url_for('dashboard') }}" class="menu-button ventas-btn">📊 VENTAS</a>
+            
+            <a href="{{ url_for('certificados') }}" class="menu-button cert-btn">📜 CERTIFICADOS</a>
+        </div>
+    </div>
+</body>
+</html>

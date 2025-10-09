@@ -12,6 +12,9 @@ from datetime import datetime
 import mysql.connector
 from mysql.connector import Error
 import pandas as pd
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+import os
 
 # --- Configuración ---
 DB_CONFIG = {
@@ -543,3 +546,44 @@ def obtener_pagos_por_cliente(cliente_id):
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
+# --- Integración con Google Sheets ---          
+def conectar_a_gsheets():
+    """
+    Establece una conexión autenticada con la API de Google Sheets.
+    """
+    try:
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            'https://www.googleapis.com/auth/spreadsheets',
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        
+        # Busca el archivo JSON en la carpeta principal del proyecto
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        
+        # ¡¡¡IMPORTANTE!!! CAMBIA ESTE NOMBRE POR EL DE TU ARCHIVO JSON
+        creds_file = os.path.join(base_dir, 'centro-web-app-474322-d1f6bd19a50f.json') 
+
+        creds = ServiceAccountCredentials.from_json_keyfile_name(creds_file, scope)
+        client = gspread.authorize(creds)
+        return client
+    except Exception as e:
+        print(f"ERROR al conectar con Google API: {e}")
+        raise e
+
+# Función para obtener datos de una hoja específica
+def obtener_datos_sheet(nombre_sheet):
+    """
+    Obtiene todos los registros de una hoja de cálculo de Google específica.
+    """
+    try:
+        client = conectar_a_gsheets()
+        sheet = client.open(nombre_sheet).sheet1
+        registros = sheet.get_all_records()
+        registros_limpios = [row for row in registros if any(str(val).strip() for val in row.values())]
+        return registros_limpios
+    except Exception as e:
+        print(f"ERROR al leer Google Sheet '{nombre_sheet}': {e}")
+        raise e

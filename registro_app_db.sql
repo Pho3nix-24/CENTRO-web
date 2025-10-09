@@ -35,3 +35,26 @@ CREATE TABLE auditoria_accesos (
     detalles TEXT, 
     ip_origen VARCHAR(45)
 );
+
+-- Permite que los campos del cliente sean opcionales (excepto DNI)
+ALTER TABLE clientes MODIFY COLUMN nombre VARCHAR(255) NULL;
+ALTER TABLE clientes MODIFY COLUMN correo VARCHAR(255) NULL;
+ALTER TABLE clientes MODIFY COLUMN celular VARCHAR(20) NULL;
+ALTER TABLE clientes MODIFY COLUMN genero VARCHAR(20) NULL;
+
+-- Permite que los campos del pago sean opcionales (excepto fecha, cuota y N° de Operación)
+-- Mantenemos cuota como NOT NULL porque un pago sin monto no tiene sentido.
+ALTER TABLE pagos MODIFY COLUMN tipo_de_cuota VARCHAR(50) NULL;
+ALTER TABLE pagos MODIFY COLUMN banco VARCHAR(100) NULL;
+ALTER TABLE pagos MODIFY COLUMN destino VARCHAR(100) NULL;
+ALTER TABLE pagos MODIFY COLUMN especialidad VARCHAR(100) NULL;
+ALTER TABLE pagos MODIFY COLUMN modalidad VARCHAR(50) NULL;
+ALTER TABLE pagos MODIFY COLUMN asesor VARCHAR(255) NULL;
+
+-- Nos aseguramos que los campos obligatorios sigan siéndolo
+ALTER TABLE pagos MODIFY COLUMN fecha DATETIME NOT NULL;
+ALTER TABLE pagos MODIFY COLUMN numero_operacion VARCHAR(50) UNIQUE NOT NULL;
+
+-- Verificar cliente activo --
+ALTER TABLE clientes
+ADD COLUMN estado VARCHAR(20) NOT NULL DEFAULT 'activo';

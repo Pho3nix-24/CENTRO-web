@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+    <h2>{{ titulo }}</h2>
+    <p>Mostrando los datos en tiempo real desde el formulario de Google.</p>
+    {% if registros %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        {% for header in headers %}
+                            <th>{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fila in registros %}
+                        <tr>
+                            {% for header in headers %}
+                                <td>{{ fila[header] }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="message">No se encontraron registros en la hoja de cálculo o no se pudo acceder a ella.</p>
+    {% endif %}
+{% endblock %}

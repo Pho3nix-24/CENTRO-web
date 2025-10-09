@@ -17,6 +17,8 @@ from app import app
 from app import database_manager as db
 from mysql.connector import IntegrityError, Error as DB_Error
 from werkzeug.security import check_password_hash
+from app import sheets_manager
+
 
 # --- Configuración y Constantes ---
 RECORDS_PER_PAGE = 5
@@ -44,6 +46,8 @@ FIELDS = [
     "tipo_de_cuota", "banco", "destino", "numero_operacion", "dni",
     "correo", "genero", "asesor"
 ]
+
+RECORDS_PER_PAGE_SHEETS = 20
 
 # --- Decoradores de Autenticación ---
 
@@ -99,7 +103,7 @@ def login():
             
             db.registrar_auditoria(user_data['full_name'], "INICIO_SESION_EXITOSO", ip_usuario)
             flash("Has iniciado sesión correctamente.", "success")
-            return redirect(url_for("index"))
+            return redirect(url_for("menu"))
         else:
             # --- LOGIN FALLIDO ---
             if ip_usuario not in failed_logins:
@@ -129,6 +133,13 @@ def logout():
     session.clear()
     flash("Has cerrado la sesión.", "success")
     return redirect(url_for('login'))
+
+# --- Ruta del Menú Principal ---
+@app.route("/menu")
+@login_required
+def menu():
+    """Muestra el menú principal para elegir la sección."""
+    return render_template("menu.html")
 
 # --- Rutas Principales de la Aplicación ---
 
@@ -289,12 +300,15 @@ def actualizar_pago(id):
     if session.get('role') == 'atencion_cliente':
         flash("Acceso no autorizado.", "error")
         return redirect(url_for('consulta'))
+
     if request.method == "POST":
+        # Obtenemos el 'query' para mantener el filtro en la redirección
+        query = request.form.get("query", "")
         try:
             pago_original = db.obtener_pago_por_id(id)
             if not pago_original:
                 flash("Error: No se encontró el registro original.", "error")
-                return redirect(url_for("consulta"))
+                return redirect(url_for("consulta", query=query))
 
             cliente_id = pago_original['cliente_id']
             datos_nuevo_pago = request.form.to_dict()
@@ -309,18 +323,29 @@ def actualizar_pago(id):
             nuevo_pago_id = db.crear_pago(cliente_id, datos_nuevo_pago)
             flash("Renovación de pago registrada exitosamente.", "success")
             
+            # Auditoría
             usuario_actual = session.get('full_name', 'desconocido')
             ip_usuario = request.remote_addr
             detalles = f"Cliente ID: {cliente_id}, Pago ID: {nuevo_pago_id} (RENOVACIÓN)"
             db.registrar_auditoria(usuario_actual, "RENOVAR_PAGO", ip_usuario, "pagos", nuevo_pago_id, detalles)
 
-            return redirect(url_for("consulta", query=request.args.get('query', '')))
+            return redirect(url_for("consulta", query=query))
+
+        except IntegrityError:
+            # Captura el error de N° de Operación duplicado
+            flash("Error: El N° de Operación ingresado ya existe en otro registro. Por favor, verifícalo.", "error")
+            # Devuelve al usuario al mismo formulario para que lo corrija
+            return redirect(url_for("actualizar_pago", id=id, query=query))
+
         except DB_Error as e:
+            # Captura cualquier otro error de la base de datos
             flash(f"Error al procesar el pago: {e}", "error")
-            return redirect(url_for("consulta", query=request.args.get('query', '')))
+            return redirect(url_for("consulta", query=query))
     
+    # Esto se ejecuta cuando el método es GET (la primera vez que se carga la página)
+    query = request.args.get('query', '')
     datos_pago_actual = db.obtener_pago_por_id(id)
-    return render_template("actualizar_pago.html", data=datos_pago_actual, id=id, query=request.args.get('query', ''))
+    return render_template("actualizar_pago.html", data=datos_pago_actual, id=id, query=query)
 
 #   Eliminar un cliente (borrado lógico)
 @app.route("/eliminar", methods=["POST"])
@@ -448,6 +473,47 @@ def perfil_cliente(cliente_id):
     except DB_Error as e:
         flash(f"Error al cargar el perfil del cliente: {e}", "error")
         return redirect(url_for('consulta'))
+
+# --- Rutas de Integración con Google Sheets ---    
+@app.route("/certificados")
+@login_required
+def certificados():
+    """
+    Muestra los datos de certificados con búsqueda y paginación.
+    """
+    # 1. Obtener parámetros de la URL
+    query = request.args.get("query", "").strip().lower()
+    page = request.args.get('page', 1, type=int)
+    
+    # 2. Cargar todos los datos (usará el caché que implementamos)
+    todos_los_datos = sheets_manager.obtener_datos_certificados()
+    
+    # 3. Filtrar los resultados si hay una búsqueda
+    resultados_filtrados = []
+    if query:
+        for registro in todos_los_datos:
+            # Convierte todos los valores del registro a string y minúsculas para buscar
+            if any(query in str(value).lower() for value in registro.values()):
+                resultados_filtrados.append(registro)
+    else:
+        resultados_filtrados = todos_los_datos
+        
+    # 4. Aplicar la paginación a los resultados filtrados
+    total_records = len(resultados_filtrados)
+    total_pages = (total_records + RECORDS_PER_PAGE_SHEETS - 1) // RECORDS_PER_PAGE_SHEETS
+    start_index = (page - 1) * RECORDS_PER_PAGE_SHEETS
+    end_index = start_index + RECORDS_PER_PAGE_SHEETS
+    
+    resultados_paginados = resultados_filtrados[start_index:end_index]
+    
+    return render_template(
+        "certificados.html", 
+        certificados=resultados_paginados,
+        page=page,
+        total_pages=total_pages,
+        query=query,
+        is_certificate_section=True
+    )
 
 # --- Ruta del Favicon ---
 @app.route('/favicon.ico')
