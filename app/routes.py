@@ -348,9 +348,9 @@ def actualizar_pago(id):
     return render_template("actualizar_pago.html", data=datos_pago_actual, id=id, query=query)
 
 #   Eliminar un cliente (borrado lógico)
-@app.route("/eliminar", methods=["POST"])
+@app.route("/desactivar_cliente", methods=["POST"])
 @login_required
-def eliminar():
+def desactivar_cliente():
     """Desactiva un cliente (borrado lógico). Restringido a admin y equipo."""
     if session.get('role') == 'atencion_cliente':
         flash("Acceso no autorizado.", "error")
@@ -374,6 +374,61 @@ def eliminar():
         flash(f"Error: No se pudo desactivar al cliente: {e}", "error")
     return redirect(url_for("consulta", query=query))
 
+
+# Reactivar un cliente (cambiar su estado a 'activo')
+@app.route("/reactivar_cliente", methods=["POST"])
+@login_required
+def reactivar_cliente():
+    """Reactiva un cliente (cambia su estado a 'activo')."""
+    if session.get('role') not in ['admin', 'equipo']:
+        flash("Acceso no autorizado.", "error")
+        return redirect(url_for('consulta'))
+
+    # Para reactivar, necesitamos el ID del CLIENTE, no del pago.
+    # La forma más fácil es pasarlo desde el formulario.
+    cliente_id = int(request.form.get("cliente_id"))
+    query = request.form.get("query", "")
+    try:
+        db.cambiar_estado_cliente(cliente_id, 'activo')
+        flash("Cliente reactivado correctamente.", "success")
+
+        # Auditoría
+        usuario_actual = session.get('full_name', 'desconocido')
+        ip_usuario = request.remote_addr
+        db.registrar_auditoria(usuario_actual, "REACTIVAR_CLIENTE", ip_usuario, "clientes", cliente_id)
+    except DB_Error as e:
+        flash(f"Error al reactivar al cliente: {e}", "error")
+        
+    return redirect(url_for("consulta", query=query))
+
+# Eliminar un PAGO (borrado físico) - SOLO ADMIN
+@app.route("/eliminar_pago", methods=["POST"])
+@login_required
+def eliminar_pago():
+    """Elimina un registro de pago de forma permanente. Admin y equipo."""
+    if session.get('role') not in ['admin', 'equipo']:
+        flash("Acceso no autorizado.", "error")
+        return redirect(url_for('consulta'))
+
+    pago_id = int(request.form.get("id"))
+    query = request.form.get("query", "")
+    try:
+        # Usamos la función que ya existía en database_manager.py
+        filas_afectadas = db.eliminar_pago(pago_id)
+        if filas_afectadas > 0:
+            flash(f"Registro de pago ID: {pago_id} eliminado permanentemente.", "success")
+            
+            # Auditoría
+            usuario_actual = session.get('full_name', 'desconocido')
+            ip_usuario = request.remote_addr
+            db.registrar_auditoria(usuario_actual, "ELIMINAR_PAGO_PERMANENTE", ip_usuario, "pagos", pago_id)
+        else:
+            flash("Error: No se encontró el registro de pago para eliminar.", "error")
+            
+    except DB_Error as e:
+        flash(f"Error de base de datos al eliminar el pago: {e}", "error")
+        
+    return redirect(url_for("consulta", query=query))
 
 # --- Rutas de Reportes y Administración ---
 
@@ -514,6 +569,93 @@ def certificados():
         query=query,
         is_certificate_section=True
     )
+
+# --- Nueva Ruta para Editar Registros en Google Sheets ---   
+@app.route("/certificados/editar/<int:row_id>", methods=["GET", "POST"])
+@login_required
+def editar_certificado(row_id):
+    """
+    Maneja la edición de un registro de certificado.
+    """
+    # Buscamos el registro específico que el usuario quiere editar
+    todos_los_datos = sheets_manager.obtener_datos_certificados()
+    registro_a_editar = next((item for item in todos_los_datos if item['row_id'] == row_id), None)
+
+    if not registro_a_editar:
+        flash("Error: No se encontró el registro para editar.", "error")
+        return redirect(url_for('certificados'))
+
+    if request.method == "POST":
+        # El usuario ha enviado el formulario con los cambios
+        form_data = request.form.to_dict()
+        try:
+            sheets_manager.actualizar_certificado(row_id, form_data)
+            flash("Registro actualizado correctamente en Google Sheets.", "success")
+            return redirect(url_for('certificados'))
+        except Exception as e:
+            flash(f"Error al actualizar el registro: {e}", "error")
+
+    # Si es GET, mostramos el formulario de edición con los datos actuales
+    # Excluimos 'row_id' de los campos a mostrar en el formulario
+    campos_editables = {k: v for k, v in registro_a_editar.items() if k != 'row_id'}
+    return render_template("editar_certificado.html", registro=campos_editables, row_id=row_id)
+
+# --- Ruta para la Página de Diplomados ---
+@app.route("/diplomados")
+@login_required
+def diplomados():
+    """Muestra los datos de la hoja de cálculo de diplomados."""
+    query = request.args.get("query", "").strip().lower()
+    page = request.args.get('page', 1, type=int)
+    
+    todos_los_datos = sheets_manager.obtener_datos_diplomados()
+    
+    resultados_filtrados = []
+    if query:
+        for registro in todos_los_datos:
+            if any(query in str(value).lower() for value in registro.values()):
+                resultados_filtrados.append(registro)
+    else:
+        resultados_filtrados = todos_los_datos
+        
+    total_records = len(resultados_filtrados)
+    total_pages = (total_records + RECORDS_PER_PAGE_SHEETS - 1) // RECORDS_PER_PAGE_SHEETS
+    start_index = (page - 1) * RECORDS_PER_PAGE_SHEETS
+    end_index = start_index + RECORDS_PER_PAGE_SHEETS
+    resultados_paginados = resultados_filtrados[start_index:end_index]
+    
+    return render_template(
+        "diplomados.html", 
+        diplomados=resultados_paginados,
+        page=page,
+        total_pages=total_pages,
+        query=query,
+        is_certificate_section=True
+    )
+
+# --- Ruta para Editar Registros de Diplomados en Google Sheets ---
+@app.route("/diplomados/editar/<int:row_id>", methods=["GET", "POST"])
+@login_required
+def editar_diplomado(row_id):
+    """Maneja la edición de un registro de diplomado."""
+    todos_los_datos = sheets_manager.obtener_datos_diplomados()
+    registro_a_editar = next((item for item in todos_los_datos if item['row_id'] == row_id), None)
+
+    if not registro_a_editar:
+        flash("Error: No se encontró el registro para editar.", "error")
+        return redirect(url_for('diplomados'))
+
+    if request.method == "POST":
+        form_data = request.form.to_dict()
+        try:
+            sheets_manager.actualizar_diplomado(row_id, form_data)
+            flash("Registro de diplomado actualizado correctamente.", "success")
+            return redirect(url_for('diplomados'))
+        except Exception as e:
+            flash(f"Error al actualizar el registro: {e}", "error")
+
+    campos_editables = {k: v for k, v in registro_a_editar.items() if k != 'row_id'}
+    return render_template("editar_diplomado.html", registro=campos_editables, row_id=row_id)
 
 # --- Ruta del Favicon ---
 @app.route('/favicon.ico')

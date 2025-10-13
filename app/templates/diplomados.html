@@ -1,36 +1,36 @@
 {% extends "base.html" %}
 
-{% block title %}Consulta de Certificados{% endblock %}
+{% block title %}Consulta de Diplomados{% endblock %}
 
 {% block content %}
-    <h2>📜 Certificados</h2>
+    <h2>🎓 Diplomados</h2>
 
-    <form method="GET" action="{{ url_for('certificados') }}" class="search-form">
-        <label for="search_query" style="white-space:nowrap;">Buscar en Certificados:</label>
+    <form method="GET" action="{{ url_for('diplomados') }}" class="search-form">
+        <label for="search_query" style="white-space:nowrap;">Buscar en Diplomados:</label>
         <input type="text" id="search_query" name="query" value="{{ query or '' }}" placeholder="Nombre, DNI, curso...">
         <button type="submit">Buscar</button>
-        <a href="{{ url_for('certificados') }}" class="btn-secondary">Ver Todos</a>
+        <a href="{{ url_for('diplomados') }}" class="btn-secondary">Ver Todos</a>
     </form>
 
-    {% if certificados %}
+    {% if diplomados %}
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    {% for header in certificados[0].keys() if header != 'row_id' %}
+                    {% for header in diplomados[0].keys() if header != 'row_id' %}
                         <th>{{ header }}</th>
                     {% endfor %}
                     <th>EDITAR</th> </tr>
             </thead>
             <tbody>
-                {% for registro in certificados %}
+                {% for registro in diplomados %}
                     <tr>
                         {% for key, cell in registro.items() if key != 'row_id' %}
                             <td>{{ cell }}</td>
                         {% endfor %}
                         
                         <td class="actions">
-                            <a href="{{ url_for('editar_certificado', row_id=registro.row_id) }}" class="action-icon" title="Editar Registro">✏️</a>
+                            <a href="{{ url_for('editar_diplomado', row_id=registro.row_id) }}" class="action-icon" title="Editar Registro">✏️</a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -38,15 +38,15 @@
         </table>
     </div>
     {% elif query %}
-        <p class="message">No se encontraron certificados para tu búsqueda.</p>
+        <p class="message">No se encontraron diplomados para tu búsqueda.</p>
     {% else %}
-        <p class="message">No hay datos de certificados para mostrar.</p>
+        <p class="message">No hay datos de diplomados para mostrar.</p>
     {% endif %}
 
     {% if total_pages > 1 %}
     <div class="pagination">
         {% if page > 1 %}
-            <a href="{{ url_for('certificados', query=query, page=page - 1) }}" class="page-link">Anterior</a>
+            <a href="{{ url_for('diplomados', query=query, page=page - 1) }}" class="page-link">Anterior</a>
         {% else %}
             <span class="page-link disabled">Anterior</span>
         {% endif %}
@@ -54,7 +54,7 @@
         <span class="page-info">Página {{ page }} de {{ total_pages }}</span>
         
         {% if page < total_pages %}
-            <a href="{{ url_for('certificados', query=query, page=page + 1) }}" class="page-link">Siguiente</a>
+            <a href="{{ url_for('diplomados', query=query, page=page + 1) }}" class="page-link">Siguiente</a>
         {% else %}
             <span class="page-link disabled">Siguiente</span>
         {% endif %}

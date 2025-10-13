@@ -3,7 +3,7 @@
 {% block title %}Registro Docente{% endblock %}
 
 {% block content %}
-    <h2>Registro Docente</h2>
+    <h2>✍️ Registro Docente</h2>
     <form method="POST" action="{{ url_for('submit') }}">
         <label for="fecha">Fecha de pago</label>
         <input type="date" id="fecha" name="fecha" required />
@@ -77,10 +77,8 @@
             <option value="Femenino">F</option>
             <option value="Otro">Otro</option>
         </select>
-
-        <label for="asesor">Asesor(a) (Colocar Nombre y Apellido)</label>
+        <label for="asesor">Asesor(a)</label>
         <input type="text" id="asesor" name="asesor" />
-
         <button type="submit">Guardar Registro</button>
     </form>
 {% endblock %}

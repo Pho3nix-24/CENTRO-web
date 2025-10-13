@@ -642,3 +642,69 @@ button[class="action-icon-btn"]:hover {
     font-size: 1.6em;
     font-weight: 700;
 }
+
+/* Contenedor de la tabla - Se centra dentro del .content */
+.table-container { 
+    overflow: auto; /* CAMBIO: Usamos 'auto' para ambos scrolls */
+    max-height: 70vh; /* NUEVO: Altura máxima del 70% de la pantalla */
+    background: white; 
+    border-radius: 10px; 
+    padding: 15px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    max-width: 100%;
+    margin: 20px auto;
+}
+
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    font-size: 14px; 
+}
+
+th, td { 
+    border: 1px solid #ddd; 
+    padding: 10px; 
+    text-align: left; 
+    vertical-align: top;
+}
+
+th { 
+    background: #004080; 
+    color: white; 
+    font-weight: 600; 
+    white-space: nowrap;
+    
+    /* --- NUEVO: ESTO HACE LA MAGIA DEL ENCABEZADO FIJO --- */
+    position: sticky; /* Permite que el encabezado se "pegue" */
+    top: -1px;        /* Lo pega en la parte superior del contenedor */
+    z-index: 10;      /* Se asegura de que esté por encima de las filas */
+}
+
+/* Estilo para filas activas (fondo verde claro) */
+tr.fila-activa td {
+    background-color: #e8f5e9 !important; /* Verde suave con !important */
+}
+
+tr.fila-activa:hover td {
+    background-color: #c8e6c9 !important; /* Verde más oscuro al pasar el mouse */
+}
+
+/* Estilo para filas inactivas (fondo rojo claro) */
+tr.fila-inactiva td {
+    background-color: #ffebee !important; /* Rojo suave con !important */
+    color: #c62828 !important;
+    opacity: 1;
+}
+
+/* El enlace dentro de las filas inactivas */
+tr.fila-inactiva a {
+    color: #c62828 !important;
+    text-decoration: line-through;
+}
+
+/* Hover para las filas inactivas */
+tr.fila-inactiva:hover td {
+    background-color: #ffcdd2 !important;
+}
+
+

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Certificado{% endblock %}
+
+{% block content %}
+    <h2>Editar Registro de Certificado</h2>
+    <form method="POST" action="{{ url_for('editar_certificado', row_id=row_id) }}">
+        <a href="{{ url_for('certificados') }}" class="back-link">← Volver a la consulta</a>
+
+        {% for campo, valor in registro.items() %}
+            <label for="{{ campo }}">{{ campo }}</label>
+            <input type="text" id="{{ campo }}" name="{{ campo }}" value="{{ valor or '' }}">
+        {% endfor %}
+        
+        <button type="submit">Guardar Cambios</button>
+    </form>
+{% endblock %}
