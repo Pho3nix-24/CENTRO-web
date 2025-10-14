@@ -49,7 +49,12 @@ FIELDS = [
 
 RECORDS_PER_PAGE_SHEETS = 20
 
-# --- Decoradores de Autenticación ---
+# --- Funciones Auxiliares ---
+def get_user_ip():
+    """Obtiene la IP real del usuario, incluso detrás de un proxy como Nginx."""
+    if request.headers.getlist("X-Forwarded-For"):
+        return request.headers.getlist("X-Forwarded-For")[0]
+    return request.remote_addr
 
 # Decorador para proteger rutas que requieren login
 def login_required(f):
@@ -70,7 +75,7 @@ def login():
     Maneja el inicio de sesión de usuarios, usando hasheo de contraseñas
     y un sistema de bloqueo por intentos fallidos para prevenir ataques de fuerza bruta.
     """
-    ip_usuario = request.remote_addr
+    ip_usuario = get_user_ip()
 
     # 1. VERIFICAR SI LA IP ESTÁ BLOQUEADA
     if ip_usuario in failed_logins:
@@ -127,7 +132,7 @@ def login():
 def logout():
     """Cierra la sesión del usuario y registra el evento."""
     usuario_actual = session.get('full_name', 'desconocido')
-    ip_usuario = request.remote_addr
+    ip_usuario = get_user_ip()
     db.registrar_auditoria(usuario_actual, "CIERRE_SESION", ip_usuario)
 
     session.clear()
@@ -223,7 +228,7 @@ def submit():
 
         # (Auditoría)
         usuario_actual = session.get('full_name', 'desconocido')
-        ip_usuario = request.remote_addr
+        ip_usuario = get_user_ip()
         detalles = f"Cliente ID: {cliente_id}, Pago ID: {nuevo_pago_id}"
         db.registrar_auditoria(usuario_actual, "CREAR_PAGO", ip_usuario, "pagos", nuevo_pago_id, detalles)
 
@@ -282,7 +287,7 @@ def editar(id):
             flash("Pago actualizado correctamente.", "success")
             
             usuario_actual = session.get('full_name', 'desconocido')
-            ip_usuario = request.remote_addr
+            ip_usuario = get_user_ip()
             db.registrar_auditoria(usuario_actual, "EDITAR_PAGO", ip_usuario, "pagos", id)
         except DB_Error as e:
             flash(f"Error al actualizar el pago: {e}", "error")
@@ -325,7 +330,7 @@ def actualizar_pago(id):
             
             # Auditoría
             usuario_actual = session.get('full_name', 'desconocido')
-            ip_usuario = request.remote_addr
+            ip_usuario = get_user_ip()
             detalles = f"Cliente ID: {cliente_id}, Pago ID: {nuevo_pago_id} (RENOVACIÓN)"
             db.registrar_auditoria(usuario_actual, "RENOVAR_PAGO", ip_usuario, "pagos", nuevo_pago_id, detalles)
 
@@ -366,7 +371,7 @@ def desactivar_cliente():
             flash("Cliente desactivado correctamente. Ya no aparecerá en las búsquedas.", "success")
 
             usuario_actual = session.get('full_name', 'desconocido')
-            ip_usuario = request.remote_addr
+            ip_usuario = get_user_ip()
             db.registrar_auditoria(usuario_actual, "DESACTIVAR_CLIENTE", ip_usuario, "clientes", cliente_id)
         else:
             flash("Error: No se encontró el pago asociado.", "error")
@@ -394,7 +399,7 @@ def reactivar_cliente():
 
         # Auditoría
         usuario_actual = session.get('full_name', 'desconocido')
-        ip_usuario = request.remote_addr
+        ip_usuario = get_user_ip()
         db.registrar_auditoria(usuario_actual, "REACTIVAR_CLIENTE", ip_usuario, "clientes", cliente_id)
     except DB_Error as e:
         flash(f"Error al reactivar al cliente: {e}", "error")
@@ -420,7 +425,7 @@ def eliminar_pago():
             
             # Auditoría
             usuario_actual = session.get('full_name', 'desconocido')
-            ip_usuario = request.remote_addr
+            ip_usuario = get_user_ip()
             db.registrar_auditoria(usuario_actual, "ELIMINAR_PAGO_PERMANENTE", ip_usuario, "pagos", pago_id)
         else:
             flash("Error: No se encontró el registro de pago para eliminar.", "error")
