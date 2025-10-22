@@ -58,3 +58,4 @@ ALTER TABLE pagos MODIFY COLUMN numero_operacion VARCHAR(50) UNIQUE NOT NULL;
 -- Verificar cliente activo --
 ALTER TABLE clientes
 ADD COLUMN estado VARCHAR(20) NOT NULL DEFAULT 'activo';
+UPDATE clientes SET estado = 'activo' WHERE estado IS NULL OR estado = '';
