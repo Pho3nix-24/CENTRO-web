@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Interesado (Lead){% endblock %}
+
+{% block content %}
+    <h2>Leads (Interesados)</h2>
+    <p style="text-align: center; max-width: 650px; margin: -15px auto 20px auto;">Registra aquí a las personas que piden información para poder darles seguimiento.</p>
+
+    <form method="POST" action="{{ url_for('registrar_interesado') }}">
+        <label for="cliente">Nombre del Interesado</label>
+        <input type="text" id="cliente" name="cliente" required />
+
+        <label for="celular">Celular</label>
+        <input type="tel" pattern="[0-9]{9}" title="Ingrese un número de celular válido (9 dígitos)" id="celular" name="celular" required />
+
+        <label for="dni">DNI (Opcional)</label>
+        <input type="text" pattern="[0-9]{8}" title="Ingrese un DNI válido (8 dígitos)" id="dni" name="dni" />
+
+        <label for="correo">Correo (Opcional)</label>
+        <input type="email" id="correo" name="correo" />
+        
+        <label for="genero">Género</label>
+        <select id="genero" name="genero" >
+            <option value="">Seleccione</option>
+            <option value="Masculino">M</option>
+            <option value="Femenino">F</option>
+            <option value="Otro">Otro</option>
+        </select>
+        
+        <label for="curso_interes">Curso de Interés</label>
+        <input type="text" id="curso_interes" name="curso_interes" placeholder="Ej: Ascenso Primaria, Nombramiento Comunicación..." />
+
+        <button type="submit">Guardar Interesado</button>
+    </form>
+{% endblock %}

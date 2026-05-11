@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Consulta de Leads{% endblock %}
+
+{% block content %}
+    <h2>Consulta de Leads (Interesados)</h2>
+
+    <form method="GET" action="{{ url_for('consulta_leads') }}" class="search-form">
+        <label for="search_query" style="white-space:nowrap;">Buscar Lead:</label>
+        <input type="text" id="search_query" name="query" value="{{ query or '' }}" placeholder="Nombre, DNI, correo..."/>
+        <button type="submit">Buscar</button>
+        <a href="{{ url_for('consulta_leads') }}" class="btn-secondary">Ver Todos</a>
+    </form>
+
+    {% if leads %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Celular</th>
+                        <th>DNI</th>
+                        <th>Correo</th>
+                        <th>Estado</th>
+                        <th>Curso de Interés</th>
+                        <th>Asesor</th>
+                        <th>Fecha Contacto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in leads %}
+                        <tr>
+                            <td>{{ lead.nombre }}</td>
+                            <td>{{ lead.celular }}</td>
+                            <td>{{ lead.dni }}</td>
+                            <td>{{ lead.correo }}</td>
+                            <td><span class="status-{{ lead.estado }}">{{ lead.estado|capitalize }}</span></td>
+                            <td>{{ lead.curso_interes }}</td>
+                            <td>{{ lead.asesor_asignado }}</td>
+                            <td>{{ lead.fecha_contacto.strftime('%Y-%m-%d') if lead.fecha_contacto }}</td>
+                            <td class="actions">
+                                <a href="{{ url_for('perfil_cliente', cliente_id=lead.id) }}" class="action-icon" title="Ver Perfil">👤</a>
+                                
+                                <form action="{{ url_for('eliminar_lead', cliente_id=lead.id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este lead PERMANENTEMENTE?');" style="display: inline;">
+                                    <button class="action-icon-btn" title="Eliminar Lead Permanentemente">🗑️</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% elif query %}
+        <p class="message">No se encontraron leads para tu búsqueda.</p>
+    {% endif %}
+
+{% endblock %}

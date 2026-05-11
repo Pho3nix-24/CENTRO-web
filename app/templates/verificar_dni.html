@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;">
+    <h2 style="color: #004080;">🔍 Validación de Registro</h2>
+    <p style="color: #666;">Ingrese el DNI para verificar disponibilidad en el sistema.</p>
+    
+    <div style="margin: 25px 0;">
+        <input type="text" id="dni_check" placeholder="Ingrese DNI (8 dígitos)" 
+               style="width: 80%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.1em; text-align: center;">
+    </div>
+
+    <div id="resultado_validacion" style="margin-bottom: 20px; display: none; padding: 15px; border-radius: 8px; font-weight: bold;">
+        </div>
+
+    <button id="btnVerificar" onclick="validarDNI()" style="width: 100%; background: #004080; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+        Verificar DNI
+    </button>
+
+    <a id="btnSiguiente" href="#" style="display: none; width: 95%; background: #28a745; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">
+        Siguiente: Llenar Formulario ➡️
+    </a>
+</div>
+
+<script>
+function validarDNI() {
+    const dni = document.getElementById('dni_check').value;
+    if(dni.length < 8) {
+        alert("Por favor ingrese un DNI válido.");
+        return;
+    }
+
+    // Llamada AJAX a una nueva ruta de Flask
+    fetch(`/api/verificar_cliente/${dni}`)
+    .then(response => response.json())
+    .then(data => {
+        const div = document.getElementById('resultado_validacion');
+        const btnS = document.getElementById('btnSiguiente');
+        div.style.display = 'block';
+
+        if(data.existe) {
+            div.style.background = '#fff5f5';
+            div.style.color = '#dc3545';
+            div.innerHTML = `❌ CLIENTE EXISTENTE:<br>${data.nombre}<br>Especialidad: ${data.especialidad}`;
+            btnS.style.display = 'none';
+        } else {
+            div.style.background = '#eefaf0';
+            div.style.color = '#198754';
+            div.innerHTML = `✅ NUEVO CLIENTE<br>El DNI ${dni} está disponible.`;
+            btnS.style.display = 'inline-block';
+            // Pasamos el DNI por la URL para que el formulario lo reciba ya lleno
+            btnS.href = `/registrar?dni=${dni}`;
+        }
+    });
+}
+</script>
+{% endblock %}

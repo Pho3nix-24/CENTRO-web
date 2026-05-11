@@ -1,710 +1,1082 @@
-body { 
-    font-family: "Segoe UI", sans-serif; 
-    background: #f2f4f8; 
-    margin: 0; 
-    padding: 0; 
-    color: #333; /* Color de texto base */
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f2f4f8;
+  margin: 0;
+  padding: 0;
+  color: #333; /* Color de texto base */
 }
 
 /* Contenedor principal para centrar el contenido */
 .content {
-    width: 95%;         
-    max-width: 1800px;    
-    margin: 20px auto;  
-    padding: 0;         
-    box-sizing: border-box;
+  width: 95%;
+  max-width: 1800px;
+  margin: 20px auto;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.header { 
-    background: #004080; 
-    padding: 15px; 
-    text-align: center; 
-    margin-bottom: 20px; 
+.header {
+  background: #004080;
+  padding: 15px;
+  text-align: center;
+  margin-bottom: 20px;
 }
-.header a { 
-    color: #fff; 
-    margin: 0 20px; 
-    text-decoration: none; 
-    font-weight: 600; 
+.header a {
+  color: #fff;
+  margin: 0 20px;
+  text-decoration: none;
+  font-weight: 600;
 }
-.header a:hover { 
-    text-decoration: underline; 
+.header a:hover {
+  text-decoration: underline;
 }
 
-h2 { 
-    text-align: center; 
-    color: #004080; 
-    font-weight: 700; 
-    margin: 25px 0; 
+h2 {
+  text-align: center;
+  color: #004080;
+  font-weight: 700;
+  margin: 25px 0;
 }
 
 /* Formularios - Ajustado para centrar y respetar el max-width del content */
-form { 
-    background: white; 
-    padding: 25px; 
-    border-radius: 10px; 
-    max-width: 650px; /* Un poco m√°s peque√±o que el .content para verse bien */
-    margin: 20px auto; /* Centra el formulario */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+form {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  max-width: 650px; /* Un poco m·s pequeÒo que el .content para verse bien */
+  margin: 20px auto; /* Centra el formulario */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-label { 
-    display: block; 
-    margin-top: 12px; 
-    font-weight: 600; 
-    color: #333; 
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #333;
 }
-input, select { 
-    width: 100%; 
-    padding: 10px; 
-    margin-top: 6px; 
-    border-radius: 6px; 
-    border: 1px solid #ccc; 
-    box-sizing: border-box; 
-    font-size: 15px; 
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  font-size: 15px;
 }
-button { 
-    margin-top: 20px; 
-    padding: 12px; 
-    background: #004080; 
-    color: white; 
-    border: none; 
-    border-radius: 6px; 
-    cursor: pointer; 
-    font-weight: 600; 
-    font-size: 16px; 
-    width: 100%; 
-    transition: background-color 0.3s ease; /* Suaviza el hover */
+/* ? NUEVO: Estilo para textarea (del CRM) */
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  font-size: 15px;
+  font-family: "Segoe UI", sans-serif;
+  min-height: 100px;
+  resize: vertical;
 }
-button:hover { 
-    background: #0066cc; 
+
+button {
+  margin-top: 20px;
+  padding: 12px;
+  background: #004080;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  width: 100%;
+  transition: background-color 0.3s ease; /* Suaviza el hover */
+}
+button:hover {
+  background: #0066cc;
 }
 
 /* Alertas - Usan el max-width del content */
-.alert { 
-    padding: 15px; 
-    margin-bottom: 20px; 
-    border: 1px solid transparent; 
-    border-radius: 4px; 
-    max-width: 650px; /* Igual que el formulario para consistencia */
-    margin: 20px auto; 
-    font-weight: 600; 
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  max-width: 650px; /* Igual que el formulario para consistencia */
+  margin: 20px auto;
+  font-weight: 600;
 }
-.alert.success { 
-    color: #155724; 
-    background-color: #d4edda; 
-    border-color: #c3e6cb; 
+.alert.success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
 }
-.alert.error { 
-    color: #721c24; 
-    background-color: #f8d7da; 
-    border-color: #f5c6cb; 
+.alert.error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
 }
 
 /* Contenedor de la tabla - Se centra dentro del .content */
-.table-container { 
-    overflow-x: auto; /* Permite scroll horizontal si la tabla es muy ancha */
-    background: white; 
-    border-radius: 10px; 
-    padding: 15px; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-    max-width: 100%; /* Ocupa el 100% del .content */
-    margin: 20px auto; /* Centra dentro del .content */
+.table-container {
+  overflow: auto; /* CAMBIO: Usamos 'auto' para ambos scrolls */
+  max-height: 70vh; /* NUEVO: Altura m·xima del 70% de la pantalla */
+  background: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  margin: 20px auto;
 }
-table { 
-    border-collapse: collapse; 
-    width: 100%; 
-    font-size: 14px; 
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
 }
-th, td { 
-    border: 1px solid #ddd; 
-    padding: 10px; 
-    text-align: left; 
-    vertical-align: top; /* Alinea el texto en la parte superior de la celda */
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+  vertical-align: top; /* Alinea el texto en la parte superior de la celda */
 }
-th { 
-    background: #004080; 
-    color: white; 
-    font-weight: 600; 
-    white-space: nowrap; /* Evita que los encabezados se rompan en varias l√≠neas */
+th {
+  background: #004080;
+  color: white;
+  font-weight: 600;
+  white-space: nowrap; /* Evita que los encabezados se rompan en varias lÌneas */
+
+  /* --- NUEVO: ESTO HACE LA MAGIA DEL ENCABEZADO FIJO --- */
+  position: sticky; /* Permite que el encabezado se "pegue" */
+  top: -1px; /* Lo pega en la parte superior del contenedor */
+  z-index: 10; /* Se asegura de que estÈ por encima de las filas */
 }
-tr:nth-child(even) td { 
-    background: #f9fbfd; 
+tr:nth-child(even) td {
+  background: #f9fbfd;
 }
-tr:hover td { 
-    background: #e6f0ff; 
+tr:hover td {
+  background: #e6f0ff;
 }
 
-/* Formulario de b√∫squeda - Se centra dentro del .content */
-.search-form { 
-    max-width: 600px; 
-    margin: 0 auto 20px auto; 
-    background: white; 
-    padding: 20px; 
-    border-radius: 8px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas peque√±as */
+/* Formulario de b˙squeda - Se centra dentro del .content */
+.search-form {
+  max-width: 600px;
+  margin: 0 auto 20px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeÒas */
 }
 .search-form label {
-    margin-top: 0; /* Ajusta el margen de la etiqueta dentro del form flex */
+  margin-top: 0; /* Ajusta el margen de la etiqueta dentro del form flex */
 }
-.search-form input[type=text] { 
-    flex: 1; /* Permite que el input ocupe el espacio disponible */
+.search-form input[type="text"] {
+  flex: 1; /* Permite que el input ocupe el espacio disponible */
 }
 
 p.message {
-    text-align:center;
-    font-style:italic;
-    color:#666;
-    margin-top: 20px;
+  text-align: center;
+  font-style: italic;
+  color: #666;
+  margin-top: 20px;
 }
 
-/* Media Queries para responsividad */
+/* --- Media Queries para responsividad --- */
 @media (max-width: 768px) {
-    .header a {
-        margin: 0 10px;
-    }
-    .content {
-        padding: 0 10px;
-    }
-    h2 {
-        margin: 20px 0;
-        font-size: 22px;
-    }
-    .search-form {
-        flex-direction: column; /* Apila los elementos en pantallas peque√±as */
-        align-items: stretch;
-        max-width: 95%; /* Ajusta el ancho para m√≥viles */
-    }
-    .search-form label {
-        width: 100%;
-        text-align: center;
-        margin-bottom: 5px;
-    }
-    .search-form button {
-        margin-top: 10px;
-    }
-    form, .alert {
-        max-width: 95%; /* Ajusta el ancho para m√≥viles */
-        padding: 15px;
-    }
-    th, td {
-        padding: 8px;
-        font-size: 12px;
-    }
+  /* --- Arreglo para el Header --- */
+  .header {
+    flex-direction: column; /* Apila la navegaciÛn y la info de usuario */
+    gap: 15px;
+    padding: 15px 10px;
+  }
+  .header-nav {
+    flex-wrap: wrap; /* Permite que los enlaces se vayan a una segunda lÌnea si no caben */
+    justify-content: center;
+    gap: 5px 10px; /* Espacio vertical y horizontal entre enlaces */
+  }
+  .header a {
+    margin: 0; /* Quitamos el margen fijo */
+    padding: 5px 8px; /* Hacemos los botones un poco m·s pequeÒos */
+  }
+  .user-greeting {
+    display: none; /* Ocultamos el saludo "Hola, Administrador!" para ahorrar espacio */
+  }
+
+  /* --- Arreglo para el Dashboard --- */
+  .stats-container {
+    flex-direction: column; /* Apila las tarjetas de estadÌsticas verticalmente */
+  }
+
+  /* --- Ajustes generales que ya tenÌas --- */
+  .content {
+    width: 100%;
+    padding: 0 5px; /* Menos padding en los bordes */
+  }
+  h2 {
+    font-size: 1.5em; /* TÌtulos un poco m·s pequeÒos */
+  }
+  form,
+  .alert,
+  .search-form {
+    width: 95%;
+    max-width: 100%; /* Hacemos que ocupe casi todo el ancho */
+  }
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* --- Mejora para las tablas --- */
+  th,
+  td {
+    padding: 6px;
+    font-size: 11px; /* Hacemos la letra de la tabla m·s pequeÒa */
+    line-height: 1.3;
+  }
+  .actions {
+    gap: 5px; /* Reducimos el espacio entre los iconos de acciÛn */
+  }
 }
 
 .actions {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px; /* Espacio entre √≠conos */
-    border-left: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Espacio entre Ìconos */
 }
 
 .action-icon {
-    font-size: 20px; /* Tama√±o del √≠cono */
-    text-decoration: none;
-    color: #333;
-    transition: transform 0.2s ease;
+  font-size: 20px; /* TamaÒo del Ìcono */
+  text-decoration: none;
+  color: #333;
+  transition: transform 0.2s ease;
 }
 
 .action-icon:hover {
-    transform: scale(1.2); /* Efecto de zoom al pasar el mouse */
+  transform: scale(1.2); /* Efecto de zoom al pasar el mouse */
 }
 
 .action-icon-btn {
-    font-size: 20px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    color: #333;
-    transition: transform 0.2s ease;
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #333;
+  transition: transform 0.2s ease;
 }
 
 .action-icon-btn:hover {
-    transform: scale(1.2);
+  transform: scale(1.2);
 }
 
 .actions form {
-    margin: 0;
-    padding: 0;
-    box-shadow: none;
-    background: none;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  background: none;
 }
 
 .login-body {
-    background-color: #888d9bff; /* Fondo oscuro base */
+  background-color: #888d9bff; /* Fondo oscuro base */
 
-    background-image: url("data:image/svg+xml,%3Csvg width='400' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50' y='150' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='%23333333' opacity='0.4' transform='rotate(-25 150 150)'%3ECENTRO%3C/text%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='400' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50' y='150' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='%23333333' opacity='0.4' transform='rotate(-25 150 150)'%3ECENTRO%3C/text%3E%3C/svg%3E");
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
 }
 
 .login-container {
-    max-width: 400px;
-    width: 100%;
-    padding: 20px;
+  max-width: 400px;
+  width: 100%;
+  padding: 20px;
 }
 
 .login-card {
-    background-color: #1e1e1e;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    color: #e0e0e0;
+  background-color: #1e1e1e;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  color: #e0e0e0;
 }
 
 .logo-container {
-    text-align: center;
-    margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .logo-container h2 {
-    color: #ffffff;
-    margin: 10px 0 0 0;
+  color: #ffffff;
+  margin: 10px 0 0 0;
 }
 
 .login-card .alert {
-    max-width: 100%;
-    margin-left: auto;
-    margin-right: auto;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .login-card label {
-    color: #bbbbbb;
+  color: #bbbbbb;
 }
 
 .login-card input {
-    background-color: #333333;
-    border: 1px solid #555555;
-    color: #ffffff;
+  background-color: #333333;
+  border: 1px solid #555555;
+  color: #ffffff;
 }
 
 .login-card input:focus {
-    outline: none;
-    border-color: #007bff;
+  outline: none;
+  border-color: #007bff;
 }
 
 .login-card button {
-    background-color: #007bff;
-    border: none;
-    transition: background-color 0.3s ease;
+  background-color: #007bff;
+  border: none;
+  transition: background-color 0.3s ease;
 }
 
 .login-card button:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
 
 .logout-btn {
-    background-color: #e75b10ff;
-    padding: 5px 15px;
-    border-radius: 5px;
-    font-weight: bold;
+  background-color: #e75b10ff;
+  padding: 5px 15px;
+  border-radius: 5px;
+  font-weight: bold;
 }
 
 .back-link {
-    display: inline-block;
-    margin-bottom: 25px;
-    color: #007bff; /* Color azul para que sea visible */
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
+  display: inline-block;
+  margin-bottom: 25px;
+  color: #007bff; /* Color azul para que sea visible */
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
 }
 
 .back-link:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* --- NUEVOS ESTILOS PARA LA TABLA DE REPORTE DETALLADO --- */
 .table-container .asesor-header {
-    background-color: #e9ecef; /* Un gris claro para resaltar el asesor */
-    color: #333;
-    font-size: 1.1em;
+  background-color: #e9ecef; /* Un gris claro para resaltar el asesor */
+  color: #333;
+  font-size: 1.1em;
 }
 
 .table-container .detalle-dia td:first-child {
-    border: none; /* Oculta el borde de la primera celda para la sangr√≠a */
+  border: none; /* Oculta el borde de la primera celda para la sangrÌa */
 }
 
 .table-container .detalle-dia {
-    background-color: #f8f9fa; /* Un fondo muy sutil para las filas de detalle */
+  background-color: #f8f9fa; /* Un fondo muy sutil para las filas de detalle */
 }
 
 .table-container tfoot .total-general {
-    background-color: #343a40; /* Fondo oscuro para el total general */
-    color: white;
-    font-size: 1.2em;
-    text-align: right;
+  background-color: #343a40; /* Fondo oscuro para el total general */
+  color: white;
+  font-size: 1.2em;
+  text-align: right;
 }
 
 .table-container tfoot .total-general th {
-    text-align: right;
-    padding-right: 10px;
+  text-align: right;
+  padding-right: 10px;
 }
 .table-container tfoot .total-general th:first-child {
-    text-align: left;
+  text-align: left;
 }
 
-/* Estilos para la nueva p√°gina de reportes */
+/* Estilos para la nueva p·gina de reportes */
 .report-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .date-filter-form {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
 .date-filter-form label {
-    margin: 0;
-    font-weight: 600;
+  margin: 0;
+  font-weight: 600;
 }
 
 .date-filter-form input[type="date"] {
-    width: auto;
-    padding: 8px;
+  width: auto;
+  padding: 8px;
 }
 
 .date-filter-form button {
-    width: auto;
-    padding: 8px 15px;
-    margin: 0;
+  width: auto;
+  padding: 8px 15px;
+  margin: 0;
 }
 
 .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
 }
 
-.page-link, .page-info {
-    font-weight: bold;
-    color: #004080;
-    text-decoration: none;
+.page-link,
+.page-info {
+  font-weight: bold;
+  color: #004080;
+  text-decoration: none;
 }
 
 .page-link {
-    padding: 8px 15px;
-    border: 1px solid #004080;
-    border-radius: 5px;
-    transition: background-color 0.3s, color 0.3s;
+  padding: 8px 15px;
+  border: 1px solid #004080;
+  border-radius: 5px;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }
 
 .page-link:hover {
-    background-color: #004080;
-    color: white;
+  background-color: #004080;
+  color: white;
 }
 
 .page-link.disabled {
-    color: #ccc;
-    border-color: #ccc;
-    cursor: not-allowed;
-    pointer-events: none;
+  color: #ccc;
+  border-color: #ccc;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 tfoot .subtotal-pagina {
-    background-color: #e9ecef;
-    font-weight: bold;
+  background-color: #e9ecef;
+  font-weight: bold;
 }
 
-/* --- ESTILOS COMPLETOS PARA LA P√ÅGINA DE LOGIN --- */
+/* --- ESTILOS COMPLETOS PARA LA P¡GINA DE LOGIN --- */
 .login-body {
-    background-image: url('../images/wallpaper-centro.jpg'); /* Ruta a tu imagen de fondo */
-    background-size: cover;
-    background-position: center center;
-    background-attachment: fixed;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
+  background-image: url("../images/wallpaper-centro.jpg"); /* Ruta a tu imagen de fondo */
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
 }
 
 .login-container {
-    background: rgba(20, 20, 30, 0.85); /* Fondo oscuro semi-transparente */
-    padding: 40px 35px;
-    border-radius: 20px; /* Bordes bien redondeados */
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    backdrop-filter: blur(5px); /* Efecto "vidrio esmerilado" */
-    -webkit-backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    text-align: center;
-    max-width: 380px;
-    width: 90%;
+  background: rgba(20, 20, 30, 0.85); /* Fondo oscuro semi-transparente */
+  padding: 40px 35px;
+  border-radius: 20px; /* Bordes bien redondeados */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(5px); /* Efecto "vidrio esmerilado" */
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-align: center;
+  max-width: 380px;
+  width: 90%;
 }
 
 .login-body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Overlay negro con 50% de opacidad */
-    z-index: -1; 
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Overlay negro con 50% de opacidad */
+  z-index: -1;
 }
 
 .login-logo {
-    max-width: 220px; /* Tama√±o del logo */
-    height: auto;
-    margin-bottom: 30px; /* Espacio entre el logo y el formulario */
+  max-width: 220px; /* TamaÒo del logo */
+  height: auto;
+  margin-bottom: 30px; /* Espacio entre el logo y el formulario */
 }
-
 
 .form-group input[type="text"],
 .form-group input[type="password"] {
-    width: calc(100% - 25px); /* Ajusta el ancho, restando el padding */
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 0.5px solid #575555ff;
-    border-radius: 4px;
-    box-sizing: border-box; /* Incluye padding en el ancho */
+  width: calc(100% - 25px); /* Ajusta el ancho, restando el padding */
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 0.5px solid #575555ff;
+  border-radius: 4px;
+  box-sizing: border-box; /* Incluye padding en el ancho */
 }
 
 button[type="submit"] {
-    width: 100%;
-    padding: 12px;
-    background-color: #ff6600ff; /* Color del bot√≥n */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1.1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  width: 100%;
+  padding: 12px;
+  background-color: #ff6600ff; /* Color del botÛn */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 button[class="action-icon-btn"]:hover {
-    background-color: #55e004ff;
+  background-color: #55e004ff;
 }
 
 /* Estilos para los mensajes flash (opcional, ajusta colores si es necesario) */
 .flashes {
-    list-style-type: none;
-    padding: 0;
-    margin-bottom: 20px;
+  list-style-type: none;
+  padding: 0;
+  margin-bottom: 20px;
 }
 
 .flashes li {
-    padding: 10px 15px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    text-align: center;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  text-align: center;
 }
 
 .flashes .success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
 }
 
 .flashes .error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
 /* Hacemos que el header use Flexbox para alinear todo */
 .header {
-    display: flex;
-    justify-content: space-between; /* Empuja los elementos a los extremos */
-    align-items: center;
-    padding: 7px 40px; /* Ajusta el padding para que no est√© pegado a los bordes */
+  display: flex;
+  justify-content: space-between; /* Empuja los elementos a los extremos */
+  align-items: center;
+  padding: 7px 40px; /* Ajusta el padding para que no estÈ pegado a los bordes */
 }
 
-/* Contenedor para los enlaces de navegaci√≥n */
+/* Contenedor para los enlaces de navegaciÛn */
 .header-nav {
-    display: flex;
-    gap: 15px; /* Espacio entre los enlaces */
+  display: flex;
+  gap: 15px; /* Espacio entre los enlaces */
 }
 
-/* Contenedor para el saludo y el bot√≥n de logout */
+/* Contenedor para el saludo y el botÛn de logout */
 .header-user-info {
-    display: flex;
-    align-items: center;
-    gap: 15px; /* Espacio entre el saludo y el bot√≥n */
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Espacio entre el saludo y el botÛn */
 }
 
 .user-greeting {
-    color: #f0f0f0; /* Un color de texto claro que contraste con el fondo oscuro */
-    font-size: 0.9em;
-    font-weight: italic;
+  color: #f0f0f0; /* Un color de texto claro que contraste con el fondo oscuro */
+  font-size: 0.9em;
+  font-weight: italic;
 }
 
 .btn-secondary {
-    padding: 10px 15px;
-    background-color: #6c757d; /* Un color gris secundario */
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 14px; /* Un poco m√°s peque√±o que el bot√≥n principal */
-    transition: background-color 0.3s ease;
+  padding: 10px 15px;
+  background-color: #6c757d; /* Un color gris secundario */
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px; /* Un poco m·s pequeÒo que el botÛn principal */
+  transition: background-color 0.3s ease;
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
+  background-color: #5a6268;
 }
 
 .stats-container {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    margin-bottom: 40px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
 }
 
 .stat-card {
-    background-color: white;
-    padding: 20px 25px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    text-align: center;
-    flex: 1;
-    min-width: 200px;
+  background-color: white;
+  padding: 20px 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  flex: 1;
+  min-width: 200px;
 }
 
 .stat-card h3 {
-    margin-top: 0;
-    color: #555;
-    font-size: 1em;
+  margin-top: 0;
+  color: #555;
+  font-size: 1em;
 }
 
 .stat-card p {
-    font-size: 2.2em;
-    font-weight: 700;
-    color: #004080;
-    margin-bottom: 0;
+  font-size: 2.2em;
+  font-weight: 700;
+  color: #004080;
+  margin-bottom: 0;
 }
 
 .hub-title {
-    text-align: center;
-    margin-bottom: 40px;
-    margin-top: 20px;
+  text-align: center;
+  margin-bottom: 40px;
+  margin-top: 20px;
 }
 .hub-title h2 {
-    font-size: 2.8em;
-    font-weight: 900;
-    color: #333;
-    display: inline-block;
-    margin: 0 15px;
-    vertical-align: middle;
+  font-size: 2.8em;
+  font-weight: 900;
+  color: #333;
+  display: inline-block;
+  margin: 0 15px;
+  vertical-align: middle;
 }
 .hub-title .hub-emoji {
-    font-size: 3em;
-    vertical-align: middle;
+  font-size: 3em;
+  vertical-align: middle;
 }
 .hub-container {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-top: 30px;
-    flex-wrap: wrap;
+  display: grid; /* ? CAMBIO: de flex a grid */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  margin-top: 50px;
+  text-align: center;
 }
 .hub-card {
-    background-color: #ff6a00; /* Color naranja como en tu ejemplo */
-    padding: 35px 55px;
-    border-radius: 15px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    text-decoration: none;
-    color: white;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    text-align: center;
+  background: white; /* ? CAMBIO: de naranja a blanco */
+  padding: 30px; /* ? CAMBIO: padding ajustado */
+  border-radius: 10px; /* ? CAMBIO: bordes m·s sutiles */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: #333; /* ? CAMBIO: color de texto */
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  text-align: center;
 }
 .hub-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px); /* ? CAMBIO: efecto hover m·s sutil */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+.hub-card .icon {
+  /* ? NUEVO: para el dashboard del CRM */
+  font-size: 4em;
+  line-height: 1;
 }
 .hub-card h3 {
-    color: white;
-    margin: 0;
-    font-size: 1.6em;
-    font-weight: 700;
-}
-
-/* Contenedor de la tabla - Se centra dentro del .content */
-.table-container { 
-    overflow: auto; /* CAMBIO: Usamos 'auto' para ambos scrolls */
-    max-height: 70vh; /* NUEVO: Altura m√°xima del 70% de la pantalla */
-    background: white; 
-    border-radius: 10px; 
-    padding: 15px; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-    max-width: 100%;
-    margin: 20px auto;
-}
-
-table { 
-    border-collapse: collapse; 
-    width: 100%; 
-    font-size: 14px; 
-}
-
-th, td { 
-    border: 1px solid #ddd; 
-    padding: 10px; 
-    text-align: left; 
-    vertical-align: top;
-}
-
-th { 
-    background: #004080; 
-    color: white; 
-    font-weight: 600; 
-    white-space: nowrap;
-    
-    /* --- NUEVO: ESTO HACE LA MAGIA DEL ENCABEZADO FIJO --- */
-    position: sticky; /* Permite que el encabezado se "pegue" */
-    top: -1px;        /* Lo pega en la parte superior del contenedor */
-    z-index: 10;      /* Se asegura de que est√© por encima de las filas */
+  color: #004080; /* ? CAMBIO: color de tÌtulo */
+  margin-top: 15px;
+  font-size: 1.6em;
+  font-weight: 700;
 }
 
 /* Estilo para filas activas (fondo verde claro) */
 tr.fila-activa td {
-    background-color: #e8f5e9 !important; /* Verde suave con !important */
+  background-color: #e8f5e9 !important; /* Verde suave con !important */
 }
 
 tr.fila-activa:hover td {
-    background-color: #c8e6c9 !important; /* Verde m√°s oscuro al pasar el mouse */
+  background-color: #c8e6c9 !important; /* Verde m·s oscuro al pasar el mouse */
 }
 
 /* Estilo para filas inactivas (fondo rojo claro) */
 tr.fila-inactiva td {
-    background-color: #ffebee !important; /* Rojo suave con !important */
-    color: #c62828 !important;
-    opacity: 1;
+  background-color: #ffebee !important; /* Rojo suave con !important */
+  color: #c62828 !important;
+  opacity: 1;
 }
 
 /* El enlace dentro de las filas inactivas */
 tr.fila-inactiva a {
-    color: #c62828 !important;
-    text-decoration: line-through;
+  color: #c62828 !important;
+  text-decoration: line-through;
 }
 
 /* Hover para las filas inactivas */
 tr.fila-inactiva:hover td {
-    background-color: #ffcdd2 !important;
+  background-color: #ffcdd2 !important;
 }
 
+/* ==================================================================== */
+/* --- ? NUEVOS ESTILOS DEL CRM (PEGADOS DE REPO 2) --- */
+/* ==================================================================== */
 
+/* --- Estilos del Kanban (Embudo) --- */
+.kanban-board {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 20px;
+  background-color: #f2f4f8; /* Coincide con el fondo del body */
+  border-radius: 10px;
+}
+.kanban-column {
+  flex: 1;
+  min-width: 280px;
+  background-color: #e9ecef;
+  border-radius: 8px;
+  padding: 15px;
+}
+.kanban-column h3 {
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #ccc;
+  color: #004080; /* Color de tÌtulo est·ndar */
+}
+.kanban-cards {
+  min-height: 400px;
+  padding-bottom: 20px;
+}
+.kanban-card {
+  background-color: white;
+  padding: 15px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+  cursor: grab;
+}
+.kanban-card:active {
+  cursor: grabbing;
+}
+.card-title {
+  font-weight: bold;
+  margin: 0 0 8px 0;
+}
+.card-title a {
+  text-decoration: none;
+  color: #004080;
+}
+.card-body,
+.card-footer {
+  font-size: 0.9em;
+  margin: 5px 0;
+  color: #555;
+}
+
+/* --- Estilos del Perfil de Cliente (CRM) --- */
+.profile-card {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  max-width: 800px;
+  margin: 20px auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.profile-card h3 {
+  color: #004080;
+  margin-top: 0;
+}
+.profile-card p {
+  margin: 8px 0;
+  font-size: 1.1em; /* Un poco m·s grande para el perfil */
+}
+
+/* Estados de Cliente */
+.status-activo {
+  color: #28a745;
+  font-weight: bold;
+}
+.status-potencial {
+  color: #ffc107;
+  font-weight: bold;
+}
+.status-inactivo {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* SecciÛn de Etiquetas */
+.tags-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+.tags-section strong {
+  font-size: 1.1em;
+}
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.tag {
+  background-color: #007bff;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 0.9em;
+  display: inline-flex;
+  align-items: center;
+}
+.remove-tag {
+  color: white;
+  text-decoration: none;
+  margin-left: 8px;
+  font-weight: bold;
+  font-size: 1.2em;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.remove-tag:hover {
+  opacity: 1;
+}
+.tag-form {
+  display: flex;
+  margin-top: 15px;
+  gap: 10px;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  max-width: 100%;
+}
+.tag-form input {
+  flex: 1;
+}
+.tag-form button {
+  padding: 8px 15px;
+  margin-top: 0;
+  width: auto;
+}
+
+/* SecciÛn de Actividades (Seguimiento) */
+.activity-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  max-width: 1600px; /* M·s ancho para el perfil */
+  margin: 40px auto;
+}
+.activity-forms-container {
+  flex: 1;
+  min-width: 350px;
+  max-width: 400px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 25px;
+  height: fit-content;
+}
+.activity-history-container {
+  flex: 3;
+  min-width: 500px;
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.activity-history-container h3,
+.activity-forms-container h3 {
+  color: #004080;
+  margin-top: 0;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 10px;
+}
+.interaction-form {
+  padding: 0;
+  box-shadow: none;
+  background: none;
+  margin: 0;
+  max-width: 100%;
+}
+.interaction-form label {
+  margin-top: 10px;
+  font-weight: 600;
+}
+.interaction-form select,
+.interaction-form textarea {
+  width: 100%;
+  margin-bottom: 15px;
+}
+.interaction-form button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Tabla de Historial de Seguimiento */
+.table-container-modern {
+  overflow-x: auto;
+  /* No le ponemos max-height aquÌ, ya est· dentro de un contenedor */
+}
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.history-table th,
+.history-table td {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6; /* LÌneas horizontales suaves */
+  vertical-align: middle;
+  font-size: 0.9em;
+}
+.history-table th {
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #004080;
+  white-space: nowrap;
+}
+.history-table .col-comentarios {
+  width: 35%; /* M·s espacio para comentarios */
+  white-space: pre-wrap; /* Respeta saltos de lÌnea */
+  word-break: break-word;
+}
+.history-table .col-accion {
+  width: 80px;
+  text-align: center;
+}
+.history-table .col-estado {
+  width: 30px;
+  text-align: center;
+}
+
+/* CÈlula de Acciones (Botones) */
+.actions-cell {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding-top: 15px; /* AlineaciÛn vertical */
+  padding-bottom: 15px;
+}
+.action-form {
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  max-width: 100%;
+  border-radius: 0;
+}
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.3em; /* Iconos m·s grandes */
+  transition: transform 0.2s ease;
+}
+.btn-icon:hover {
+  transform: scale(1.3);
+}
+.btn-atender {
+  color: #28a745;
+}
+.btn-eliminar {
+  color: #dc3545;
+}
+
+/* CÈlula de Estado (Punto) */
+.status-cell {
+  padding-right: 0px !important; /* Ajuste fino */
+}
+.status-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.status-atendido {
+  background-color: #28a745;
+}
+.status-por-atender {
+  background-color: #fd7e14;
+}
+
+/* Estilos para los estados de pago */
+.badge {
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.bg-danger {
+  background-color: #ff4d4d;
+  color: white;
+  border: 1px solid #cc0000;
+}
+
+.bg-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.bg-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Fila de tabla con scroll y encabezado fijo que ya tenÌas, 
+   pero asegurando que los colores se vean bien */
+tr.fila-activa:hover td {
+  background-color: #f1f7ff !important;
+}
+
+.btn-filter-deuda {
+  background: #fff5f5;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
+}
+.btn-filter-deuda:hover {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-filter-today {
+  background: #f0f7ff;
+  color: #007bff;
+  border: 1px solid #007bff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Estilos para las etiquetas de estado */
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+}
+
+.bg-success { background-color: #28a745 !important; color: white; } /* Verde - AL DIA */
+.bg-danger { background-color: #dc3545 !important; color: white; }  /* Rojo - DEUDA */
+.bg-warning { background-color: #ffc107 !important; color: #212529; } /* Amarillo - POR VENCER */
+.bg-info { background-color: #17a2b8 !important; color: white; }    /* Celeste - FINALIZADO */
+.bg-secondary { background-color: #6c757d !important; color: white; }

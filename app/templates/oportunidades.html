@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Embudo de Ventas{% endblock %}
+
+{% block content %}
+    <h2>Mi Embudo de Ventas</h2>
+    <p>Arrastra las tarjetas entre las columnas para actualizar el estado de tus oportunidades.</p>
+
+    <div class="kanban-board">
+        {% for etapa in etapas %}
+        <div class="kanban-column" id="{{ etapa }}" ondragover="event.preventDefault()" ondrop="drop(event)">
+            <h3>{{ etapa }}</h3>
+            <div class="kanban-cards">
+                {% for op in oportunidades_por_etapa[etapa] %}
+                <div class="kanban-card" id="op-{{ op.id }}" draggable="true" ondragstart="drag(event)">
+                    <p class="card-title">
+                        <a href="{{ url_for('perfil_cliente', cliente_id=op.cliente_id) }}">{{ op.cliente_nombre }}</a>
+                    </p>
+                    <p class="card-body">{{ op.curso_interes or 'Sin curso especificado' }}</p>
+                    <p class="card-footer">{{ op.cliente_celular }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const cardId = ev.dataTransfer.getData("text");
+            const card = document.getElementById(cardId);
+            let target = ev.target;
+            
+            // Asegurarse de que el destino sea el contenedor de tarjetas
+            while (!target.classList.contains('kanban-cards')) {
+                target = target.parentNode;
+            }
+            target.appendChild(card);
+
+            // Extraer datos para la API
+            const oportunidadId = cardId.replace('op-', '');
+            const nuevoEstado = target.closest('.kanban-column').id;
+
+            // Enviar actualización a la API
+            fetch('/api/oportunidad/mover', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: oportunidadId, estado: nuevoEstado }),
+            })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch((error) => console.error('Error:', error));
+        }
+    </script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .kanban-board {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding: 20px;
+        background-color: #f2f4f8;
+        border-radius: 10px;
+    }
+    .kanban-column {
+        flex: 1;
+        min-width: 280px;
+        background-color: #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    .kanban-column h3 {
+        margin-top: 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #ccc;
+    }
+    .kanban-cards {
+        min-height: 400px;
+        padding-bottom: 20px;
+    }
+    .kanban-card {
+        background-color: white;
+        padding: 15px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
+        cursor: grab;
+    }
+    .kanban-card:active {
+        cursor: grabbing;
+    }
+    .card-title {
+        font-weight: bold;
+        margin: 0 0 8px 0;
+    }
+    .card-title a {
+        text-decoration: none;
+        color: #004080;
+    }
+    .card-body, .card-footer {
+        font-size: 0.9em;
+        margin: 5px 0;
+        color: #555;
+    }
+</style>
+{% endblock %}

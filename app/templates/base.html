@@ -8,37 +8,42 @@
 </head>
 <body>
     <div class="header">
-    <div class="header-nav">
-        <a href="{{ url_for('menu') }}" style="font-weight: bold; color: #ffdd00;">🏠 Menú</a>
+        <div class="header-nav">
+            <a href="{{ url_for('menu') }}" style="font-weight: bold; color: #ffdd00;">🏠 Menú</a>
 
-        {% if not is_certificate_section %}
-            
-            {% if session.get('role') in ['admin', 'equipo'] %}
-                <a href="{{ url_for('index') }}">Panel</a>
-                <a href="{{ url_for('registrar') }}">Registrar</a>
-            {% endif %}
+            {% if not is_certificate_section %}
+                
+                {% if current_section == 'crm' %}
+                    <a href="{{ url_for('crm_dashboard') }}">Dashboard CRM</a>
 
-            <a href="{{ url_for('consulta') }}">Consultar</a>
+                {% else %}
+                    {% if session.get('role') in ['admin', 'equipo'] %}
+                        <a href="{{ url_for('dashboard') }}">Panel</a>
+                        <a href="{{ url_for('pre_registro') }}">Registrar</a>
+                    {% endif %}
 
-            {% if session.get('role') in ['admin', 'equipo'] %}
-                <a href="{{ url_for('reportes') }}">Reportes</a>
-                <a href="{{ url_for('descargar') }}">Descargar Excel</a>
-            {% endif %}
-            
-            {% if session.get('role') == 'admin' %}
-                <a href="{{ url_for('auditoria') }}">Auditoría</a>
-            {% endif %}
+                    <a href="{{ url_for('consulta') }}">Consultar</a>
 
-        {% endif %}
+                    {% if session.get('role') in ['admin', 'equipo'] %}
+                        <a href="{{ url_for('reportes') }}">Reportes</a>
+                        <a href="{{ url_for('descargar') }}">Descargar Excel</a>
+                    {% endif %}
+                    
+                    {% if session.get('role') == 'admin' %}
+                        <a href="{{ url_for('auditoria') }}">Auditoría</a>
+                    {% endif %}
+                {% endif %}
+                
+                {% endif %}
         </div>
 
-    <div class="header-user-info">
-        {% if session.full_name %}
-            <span class="user-greeting">🫡 Hola, {{ session.full_name }}!</span>
-        {% endif %}
-        <a href="{{ url_for('logout') }}" class="logout-btn">Cerrar Sesión</a>
+        <div class="header-user-info">
+            {% if session.full_name %}
+                <span class="user-greeting">🫡 Hola, {{ session.full_name }}!</span>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="logout-btn">Cerrar Sesión</a>
+        </div>
     </div>
-</div>
     
     <div class="content">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -53,5 +58,6 @@
     </div>
 
     {% block styles %}{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

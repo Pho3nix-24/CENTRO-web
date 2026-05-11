@@ -3,97 +3,158 @@
 {% block title %}Consulta de Pagos{% endblock %}
 
 {% block content %}
-    <h2>💸 Consulta de Estado de Pago</h2>
+<div style="text-align: center; margin-bottom: 25px;">
+    <h2 style="color: #004080;">💸 Consulta de Estado de Pago</h2>
 
-    <form method="GET" action="{{ url_for('consulta') }}" class="search-form">
-        <label for="dni_consulta" style="white-space:nowrap;">DNI o Cliente:</label>
-        <input type="text" id="dni_consulta" name="query" value="{{ request.args.get('query', '') }}" placeholder="DNI o nombre del cliente..." />
-        <button type="submit">Buscar</button>
-        <a href="{{ url_for('consulta') }}" class="btn-secondary">Ver Todos</a>
-    </form>
+    {# Indicadores de Filtro dinámicos #}
+    {% if query == 'deuda' %}
+    <p style="color: #dc3545; font-weight: bold;">Mostrando Clientes con Deuda 🔴</p>
+    {% elif query == 'hoy' %}
+    <p style="color: #007bff; font-weight: bold;">Mostrando Vencimientos de Hoy 📅</p>
+    {% elif solo_inactivos %}
+    <p style="color: #6c757d; font-weight: bold;">Mostrando Clientes Desactivados ⚪</p>
+    {% endif %}
+</div>
 
-    {% if resultados %}
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        {% for h in headers %}
-                            <th>{{ h }}</th>
-                        {% endfor %}
-                        <th>ACCIONES</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for fila in resultados %}
-                        <tr class="{% if fila[16] == 'inactivo' %}fila-inactiva{% else %}fila-activa{% endif %}">
-                            
-                            <td>{{ fila[0] }}</td>
-                            <td>{{ fila[1].strftime('%Y-%m-%d') if fila[1] else '' }}</td>
-                            <td>
-                                <a href="{{ url_for('perfil_cliente', cliente_id=fila[15]) }}">{{ fila[2] }}</a>
-                            </td>
-                            
-                            {% for celda in fila[3:15] %}
-                                <td>{{ celda if celda is not none else '' }}</td>
-                            {% endfor %}
-                            
-                            <td class="actions">
-                                {% if fila[16] != 'inactivo' %}
-                                    <a href="{{ url_for('editar', id=fila[0], query=request.args.get('query', '')) }}" class="action-icon" title="Editar Registro">✏️</a>
-                                {% endif %}
+<div class="search-container"
+    style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 40px;">
+    <form method="GET" action="{{ url_for('consulta') }}" class="search-form" style="max-width: 800px; margin: 0 auto;">
+        
+        <label for="dni_consulta" style="display: block; margin-bottom: 8px; font-weight: bold;">DNI o Cliente:</label>
+        <input type="text" id="dni_consulta" name="query" value="{{ query if query not in ['deuda', 'hoy'] else '' }}"
+            placeholder="DNI o nombre del cliente..." style="width: 100%; margin-bottom: 15px;" />
 
-                                {% if session.get('role') in ['admin', 'equipo'] %}
-                                    
-                                    {% if fila[16] != 'inactivo' %}
-                                        <a href="{{ url_for('actualizar_pago', id=fila[0], query=request.args.get('query', '')) }}" class="action-icon" title="Actualizar Pago">🔄</a>
-                                        <form action="{{ url_for('desactivar_cliente') }}" method="post" style="display: inline;" onsubmit="return confirm('¿Deseas DESACTIVAR a este cliente?');">
-                                            <input type="hidden" name="id" value="{{ fila[0] }}">
-                                            <input type="hidden" name="query" value="{{ request.args.get('query', '') }}">
-                                            <button type="hidden" class="action-icon-btn" title="Desactivar Cliente">❌</button>
-                                        </form>
-
-                                    {% else %}
-                                        <form action="{{ url_for('reactivar_cliente') }}" method="post" style="display: inline;" onsubmit="return confirm('¿Deseas REACTIVAR a este cliente?');">
-                                            <input type="hidden" name="cliente_id" value="{{ fila[15] }}">
-                                            <input type="hidden" name="query" value="{{ request.args.get('query', '') }}">
-                                            <button type="hidden" class="action-icon-btn" title="Reactivar Cliente">✅</button>
-                                        </form>
-                                    {% endif %}
-
-                                    <form action="{{ url_for('eliminar_pago') }}" method="post" style="display: inline;" onsubmit="return confirm('¡ACCIÓN IRREVERSIBLE! ¿Deseas ELIMINAR PERMANENTEMENTE este registro de pago?');">
-                                        <input type="hidden" name="id" value="{{ fila[0] }}">
-                                        <input type="hidden" name="query" value="{{ request.args.get('query', '') }}">
-                                        <button type="hidden" class="action-icon-btn" title="Eliminar Cliente">🗑️</button>
-                                    </form>
-                                {% endif %}
-                            </td>
-                        </tr>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #555;">📅 Próximo vencimiento:</label>
+                <input type="date" name="fecha_vence" value="{{ fecha_actual }}" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #555;">🎓 Especialidad:</label>
+                <select name="especialidad" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                    <option value="">Todas las especialidades</option>
+                    {% for esp in ["CSS", "CYT", "Comunicación", "DPCC", "Ed. Física", "Matemática", "Inicial", "Primaria", "EPT", "Inglés"] %}
+                    <option value="{{ esp }}" {% if especialidad_actual == esp %}selected{% endif %}>{{ esp }}</option>
                     {% endfor %}
-                </tbody>
-            </table>
+                </select>
+            </div>
         </div>
-    {% elif query %}
-        <p class="message">No se encontraron registros para tu búsqueda.</p>
-    {% else %}
-        <p class="message">No hay registros para mostrar.</p>
-    {% endif %}
 
-    {% if total_pages > 1 %}
-    <div class="pagination">
-        {% if page > 1 %}
-            <a href="{{ url_for('consulta', query=query, page=page - 1) }}" class="page-link">Anterior</a>
-        {% else %}
-            <span class="page-link disabled">Anterior</span>
-        {% endif %}
-        
-        <span class="page-info">Página {{ page }} de {{ total_pages }}</span>
-        
-        {% if page < total_pages %}
-            <a href="{{ url_for('consulta', query=query, page=page + 1) }}" class="page-link">Siguiente</a>
-        {% else %}
-            <span class="page-link disabled">Siguiente</span>
-        {% endif %}
-    </div>
-    {% endif %}
+        <button type="submit" style="width: 100%; margin-bottom: 15px; background-color: #004080; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Aplicar Filtros</button>
 
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; border-top: 1px solid #eee; padding-top: 15px;">
+            <a href="{{ url_for('consulta') }}" class="btn-secondary" style="padding: 8px 15px; font-size: 0.85em; text-decoration: none; background: #6c757d; color: white; border-radius: 5px;">Ver Todos</a>
+            <a href="{{ url_for('consulta', query='deuda') }}" style="background: #fff5f5; color: #dc3545; border: 1px solid #dc3545; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 0.85em;">🔴 Morosos</a>
+            <a href="{{ url_for('consulta', query='hoy') }}" style="background: #f0f7ff; color: #007bff; border: 1px solid #007bff; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 0.85em;">📅 Vencen Hoy</a>
+            <a href="{{ url_for('consulta', estado='inactivo') }}" style="background: #f8f9fa; color: #6c757d; border: 1px solid #6c757d; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 0.85em;">⚪ Ver Desactivados</a>
+        </div>
+    </form>
+</div>
+
+{% if resultados %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr style="background: #004080; color: white;">
+                <th>ID</th>
+                <th>FECHA PAGO</th>
+                <th>CLIENTE</th>
+                <th>CELULAR</th>
+                <th>ESPECIALIDAD</th>
+                <th>MODALIDAD</th>
+                <th>CUOTA ACTUAL</th>
+                <th>PAGO (S/)</th>
+                <th>TOTAL CURSO</th>
+                <th>PRÓX. FECHA</th>
+                <th>ESTADO PAGO</th>
+                <th>ASESOR</th>
+                <th>ACCIONES</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in resultados %}
+            <tr class="{% if fila[16] == 'inactivo' %}fila-inactiva{% else %}fila-activa{% endif %}">
+                <td>{{ fila[0] or '---' }}</td>
+                <td>{{ fila[1].strftime('%d/%m/%Y') if fila[1] and fila[1] is not string else (fila[1] or '---') }}</td>
+                <td>
+                    <a href="{{ url_for('perfil_cliente', cliente_id=fila[15]) }}" style="font-weight: bold;">{{ fila[2] }}</a>
+                </td>
+                <td>{{ fila[3] or '---' }}</td>
+                <td>{{ fila[4] or '---' }}</td>
+                <td>{{ fila[5] or '---' }}</td>
+
+                <td style="text-align: center;">
+                    <b>{{ fila[18] if fila[18] != 0 else 'COMPLETO' }}</b>
+                </td>
+
+                <td>S/ {{ "{:,.2f}".format(fila[6] or 0) }}</td>
+                <td>S/ {{ "{:,.2f}".format(fila[17] or 0) }}</td>
+
+                <td style="color: #d63384; font-weight: bold;">
+                    {{ fila[19].strftime('%d/%m/%Y') if fila[19] and fila[19] is not string else (fila[19] or '---') }}
+                </td>
+
+                <td style="text-align: center;">
+                    <span class="badge 
+                        {% if fila[20] == 'DEUDA' %}bg-danger
+                        {% elif fila[20] == 'POR VENCER' %}bg-warning text-dark
+                        {% elif fila[20] == 'AL DIA' %}bg-success
+                        {% elif fila[20] == 'FINALIZADO' %}bg-info
+                        {% else %}bg-secondary{% endif %}"
+                        style="padding: 5px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; display: inline-block; min-width: 80px;">
+                        {{ fila[20] or 'SIN PAGOS' }}
+                    </span>
+                </td>
+
+                <td>{{ fila[14] or '---' }}</td>
+
+                <td class="actions">
+                    {% if fila[16] != 'inactivo' %}
+                    <a href="{{ url_for('editar', id=fila[0] if fila[0] else 0, query=query) }}" class="action-icon" title="Editar Registro">✏️</a>
+                    {% endif %}
+
+                    {% if session.get('role') in ['admin', 'equipo'] %}
+                        {% if fila[16] != 'inactivo' %}
+                        <a href="{{ url_for('actualizar_pago', id=fila[0] if fila[0] else 0, query=query) }}" class="action-icon" title="Actualizar Pago">🔄</a>
+                        <form action="{{ url_for('desactivar_cliente') }}" method="post" style="display: inline;" onsubmit="return confirm('¿Deseas DESACTIVAR a este cliente?');">
+                            <input type="hidden" name="id" value="{{ fila[0] }}">
+                            <input type="hidden" name="query" value="{{ query }}">
+                            <button class="action-icon-btn" title="Desactivar Cliente">❌</button>
+                        </form>
+                        {% else %}
+                        <form action="{{ url_for('reactivar_cliente') }}" method="post" style="display: inline;" onsubmit="return confirm('¿Deseas REACTIVAR a este cliente?');">
+                            <input type="hidden" name="cliente_id" value="{{ fila[15] }}">
+                            <input type="hidden" name="query" value="{{ query }}">
+                            <button class="action-icon-btn" title="Reactivar Cliente">✅</button>
+                        </form>
+                        {% endif %}
+                        <form action="{{ url_for('eliminar_pago') }}" method="post" style="display: inline;" onsubmit="return confirm('¡ACCIÓN IRREVERSIBLE!');">
+                            <input type="hidden" name="id" value="{{ fila[0] }}">
+                            <input type="hidden" name="query" value="{{ query }}">
+                            <button class="action-icon-btn" title="Eliminar Pago">🗑️</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif query or fecha_actual or especialidad_actual or solo_inactivos %}
+<p class="message" style="text-align: center;">No se encontraron registros para los filtros seleccionados.</p>
+{% else %}
+<p class="message" style="text-align: center;">No hay registros para mostrar.</p>
+{% endif %}
+
+{% if total_pages > 1 %}
+<div class="pagination" style="margin-top: 30px; text-align: center;">
+    {% if page > 1 %}
+    <a href="{{ url_for('consulta', query=query, page=page - 1, fecha_vence=fecha_actual, especialidad=especialidad_actual, estado=estado_actual) }}" class="page-link">Anterior</a>
+    {% endif %}
+    <span class="page-info">Página {{ page }} de {{ total_pages }}</span>
+    {% if page < total_pages %} 
+    <a href="{{ url_for('consulta', query=query, page=page + 1, fecha_vence=fecha_actual, especialidad=especialidad_actual, estado=estado_actual) }}" class="page-link">Siguiente</a>
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}

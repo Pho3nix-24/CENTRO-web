@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}CRM Dashboard{% endblock %}
+
+{% block content %}
+    <style>
+        .hub-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+            text-align: center;
+        }
+        .hub-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hub-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .hub-card .icon {
+            font-size: 4em;
+            line-height: 1;
+        }
+        .hub-card h3 {
+            color: #004080;
+            margin-top: 15px;
+        }
+    </style>
+
+    <h2>CRM Dashboard</h2>
+    
+    <div class="hub-container">
+        <a href="{{ url_for('registrar_interesado') }}" class="hub-card">
+            <div class="icon">➕</div>
+            <h3>Registrar Lead</h3>
+            <p>Añade un nuevo cliente potencial al sistema.</p>
+        </a>
+        <a href="{{ url_for('oportunidades') }}" class="hub-card">
+            <div class="icon">📋</div>
+            <h3>Embudo de Ventas</h3>
+            <p>Visualiza y gestiona tus oportunidades de negocio.</p>
+        </a>
+        <a href="{{ url_for('consulta_leads') }}" class="hub-card">
+            <div class="icon">👥</div>
+            <h3>Consultar Leads</h3>
+            <p>Busca en tu base de datos de clientes potenciales.</p>
+        </a>
+         <a href="{{ url_for('descargar_leads') }}" class="hub-card">
+            <div class="icon">📄</div>
+            <h3>Descargar Leads</h3>
+            <p>Exporta la lista completa de leads a un archivo Excel.</p>
+        </a>
+    </div>
+
+{% endblock %}

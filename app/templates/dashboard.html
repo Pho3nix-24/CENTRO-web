@@ -1,54 +1,184 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard | Panel de Control{% endblock %}
 
 {% block content %}
-    <h2>💡Panel de Control</h2>
-
-    <div class="stats-container">
-        <div class="stat-card">
-            <h3>Registros (Hoy)</h3>
-            <p>{{ stats.registros_hoy }}</p>
-        </div>
-        <div class="stat-card">
-            <h3>Ingresos (Hoy)</h3>
-            <p>S/ {{ "%.2f"|format(stats.ingresos_hoy or 0) }}</p>
-        </div>
-        <div class="stat-card">
-            <h3>Ingresos (Mes)</h3>
-            <p>S/ {{ "%.2f"|format(stats.ingresos_mes or 0) }}</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2>💡 Panel de Control</h2>
+        <div class="date-display" style="color: #666; font-weight: 600;">
+            📅 {{ now.strftime('%d de %B, %Y') if now else '' }}
         </div>
     </div>
 
-    <h3>Últimos 5 Registros</h3>
-    <div class="table-container">
-        <table>
+    <!-- 1. TARJETAS DE MÉTRICAS PRINCIPALES -->
+    <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div class="stat-card" style="border-left: 5px solid #28a745; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <h3 style="font-size: 0.9em; color: #666; margin-top: 0;">Ventas Hoy</h3>
+            <p style="font-size: 1.8em; font-weight: 700; color: #28a745; margin: 10px 0;">S/ {{ "{:,.2f}".format(stats.ingresos_hoy | default(0)) }}</p>
+        </div>
+        
+        <div class="stat-card" style="border-left: 5px solid #007bff; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <h3 style="font-size: 0.9em; color: #666; margin-top: 0;">Este Mes (Recaudado)</h3>
+            <p style="font-size: 1.8em; font-weight: 700; color: #007bff; margin: 10px 0;">S/ {{ "{:,.2f}".format(stats.ingresos_mes | default(0)) }}</p>
+        </div>
+
+        <!-- NUEVA TARJETA: CLIENTES DE BAJA (FILTRO RÁPIDO) -->
+        <a href="{{ url_for('consulta', estado='inactivo') }}" class="stat-card" style="text-decoration: none; border-left: 5px solid #6c757d; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s;">
+            <h3 style="font-size: 0.9em; color: #666; margin-top: 0;">Clientes de Baja</h3>
+            <p style="font-size: 1.8em; font-weight: 700; color: #6c757d; margin: 10px 0;">Ver Lista 🔍</p>
+        </a>
+        
+        <!-- TARJETA DE OBJETIVO DINÁMICO -->
+        <div class="stat-card" style="border-left: #6f42c1 5px solid; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative;">
+            <h3 style="font-size: 0.9em; color: #666; margin-top: 0;">Objetivo de Inscritos</h3>
+            
+            {% if session.get('role') == 'admin' %}
+            <button onclick="document.getElementById('modalMeta').style.display='block'" 
+                    style="position: absolute; top: 10px; right: 10px; border: none; background: none; cursor: pointer; font-size: 1.1em; opacity: 0.6;">⚙️</button>
+            {% endif %}
+
+            <p style="font-size: 1.8em; font-weight: 700; color: #6f42c1; margin: 10px 0;">
+                {{ stats.meta_inscritos | default(0) }} <span style="font-size: 0.5em;">Alumnos</span>
+            </p>
+            <small style="color: #999;">Meta fijada para Trujillo</small>
+        </div>
+    </div>
+
+    <!-- 2. BARRA DE CUMPLIMIENTO -->
+    <div class="progress-section" style="background: white; padding: 20px; border-radius: 10px; margin-top: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="margin: 0; color: #333;">🎯 Progreso vs Meta de Inscripciones</h4>
+            <span style="font-weight: bold; color: #004080; font-size: 1.2em;">
+                {% set inscritos_actuales = pagos|length %}
+                {{ ((inscritos_actuales / stats.meta_inscritos) * 100)|round(1) if stats.meta_inscritos > 0 else 0 }}%
+            </span>
+        </div>
+        <div style="width: 100%; background: #e9ecef; border-radius: 50px; height: 15px; overflow: hidden;">
+            <div style="width: {{ (inscritos_actuales / stats.meta_inscritos) * 100 if stats.meta_inscritos > 0 else 0 }}%; 
+                        background: linear-gradient(90deg, #28a745, #6f42c1); height: 100%; transition: width 1.5s ease-in-out;">
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. ACCIONES RÁPIDAS -->
+    <div class="quick-actions" style="margin-top: 30px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+        <h3 style="margin: 0; font-size: 1.1em;">🔎 Filtros Rápidos:</h3>
+        <a href="{{ url_for('consulta', query='deuda') }}" style="background: #fff5f5; color: #dc3545; border: 1px solid #dc3545; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+            🔴 Morosos
+        </a>
+        <a href="{{ url_for('consulta', query='hoy') }}" style="background: #f0f7ff; color: #007bff; border: 1px solid #007bff; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+            📅 Vencen Hoy
+        </a>
+        <!-- Filtro por especialidad rápido (Ejemplo Primaria) -->
+        <a href="{{ url_for('consulta', especialidad='Primaria') }}" style="background: #eefaf0; color: #198754; border: 1px solid #198754; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+            📚 Primaria
+        </a>
+    </div>
+
+    <!-- 4. SECCIÓN DE GRÁFICOS -->
+    <div class="charts-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 30px;">
+        <div class="chart-card" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <h4 style="text-align: center; color: #004080; margin-bottom: 15px;">📈 Tendencia Semanal (S/)</h4>
+            <div style="height: 300px;"><canvas id="weeklyChart"></canvas></div>
+        </div>
+        <div class="chart-card" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <h4 style="text-align: center; color: #004080; margin-bottom: 15px;">🎓 Especialidades más vendidas</h4>
+            <div style="height: 300px;"><canvas id="specialtyChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- 5. ÚLTIMOS REGISTROS -->
+    <h3 style="margin-top: 40px;">🕒 Registros Recientes</h3>
+    <div class="table-container" style="background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 10px; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Fecha</th>
-                    <th>Cliente</th>
-                    <th>DNI</th>
-                    <th>Especialidad</th>
-                    <th>Cuota</th>
-                    <th>Asesor</th>
+                <tr style="background: #004080; color: white;">
+                    <th style="padding: 12px; text-align: left;">ID</th>
+                    <th style="padding: 12px; text-align: left;">Fecha</th>
+                    <th style="padding: 12px; text-align: left;">Cliente</th>
+                    <th style="padding: 12px; text-align: left;">Especialidad</th>
+                    <th style="padding: 12px; text-align: left;">Pago</th>
+                    <th style="padding: 12px; text-align: left;">N° Cuota</th>
+                    <th style="padding: 12px; text-align: left;">Estado</th>
+                    <th style="padding: 12px; text-align: left;">Asesor</th>
                 </tr>
             </thead>
             <tbody>
                 {% for pago in pagos %}
-                    <tr>
-                        <td>{{ pago[0] }}</td>
-                        <td>{{ pago[1].strftime('%Y-%m-%d') if pago[1] }}</td>
-                        <td>{{ pago[2] }}</td>
-                        <td>{{ pago[11] }}</td> <td>{{ pago[4] }}</td>
-                        <td>S/ {{ "%.2f"|format(pago[6] or 0) }}</td>
-                        <td>{{ pago[14] }}</td> </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="7" style="text-align: center;">No hay registros recientes.</td>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px;">{{ pago[0] }}</td>
+                        <td>{{ pago[1].strftime('%d/%m/%Y') if pago[1] else '' }}</td>
+                        <td style="font-weight: bold;">{{ pago[2] }}</td>
+                        <td>{{ pago[4] }}</td>
+                        <td style="color: #28a745; font-weight: bold;">S/ {{ "{:,.2f}".format(pago[6] or 0) }}</td>
+                        <td>
+                            {% if pago[18] == 0 %} <span style="color: #6f42c1; font-weight: bold;">✅ Completo</span>
+                            {% else %} Cuota {{ pago[18] }} {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if pago[20] == 'DEUDA' %}bg-danger
+                                {% elif pago[20] == 'POR VENCER' %}bg-warning text-dark
+                                {% elif pago[20] == 'AL DIA' %}bg-success
+                                {% elif pago[20] == 'FINALIZADO' %}bg-info
+                                {% else %}bg-secondary{% endif %}">
+                                {{ pago[20] | default('---') }}
+                            </span>
+                        </td>
+                        <td><small>{{ pago[14] }}</small></td>
                     </tr>
+                {% else %}
+                    <tr><td colspan="8" style="text-align: center; padding: 20px;">No hay registros recientes.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <!-- MODAL DE CONFIGURACIÓN -->
+    <div id="modalMeta" style="display:none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+        <div style="background: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 320px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            <h3 style="margin-top: 0; color: #004080;">Configurar Meta</h3>
+            <form action="{{ url_for('configurar_metas') }}" method="POST">
+                <label style="display: block; margin-bottom: 10px;">Meta Mensual (Alumnos):</label>
+                <input type="number" name="meta_inscritos" value="{{ stats.meta_inscritos }}" required style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" style="flex: 1; background: #28a745; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">Guardar</button>
+                    <button type="button" onclick="document.getElementById('modalMeta').style.display='none'" style="flex: 1; background: #6c757d; color: white; border: none; padding: 10px; border-radius: 8px;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const statsData = {{ stats|tojson|safe }};
+        new Chart(document.getElementById('weeklyChart'), {
+            type: 'bar',
+            data: {
+                labels: statsData.grafico_semanal.labels,
+                datasets: [{ label: 'Ingresos S/', data: statsData.grafico_semanal.data, backgroundColor: '#004080', borderRadius: 5 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        new Chart(document.getElementById('specialtyChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statsData.grafico_especialidades.labels,
+                datasets: [{ data: statsData.grafico_especialidades.data, backgroundColor: ['#004080', '#28a745', '#ffc107', '#dc3545', '#6f42c1'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+    </script>
+
+    <style>
+        .badge { padding: 5px 12px; border-radius: 50px; font-size: 0.75em; color: white; font-weight: bold; display: inline-block; min-width: 85px; text-align: center; }
+        .bg-danger { background-color: #dc3545 !important; }
+        .bg-success { background-color: #28a745 !important; }
+        .bg-warning { background-color: #ffc107 !important; }
+        .bg-info { background-color: #17a2b8 !important; }
+        .bg-secondary { background-color: #6c757d !important; }
+        .text-dark { color: #212529 !important; }
+        .stat-card:hover { transform: translateY(-3px); }
+    </style>
 {% endblock %}

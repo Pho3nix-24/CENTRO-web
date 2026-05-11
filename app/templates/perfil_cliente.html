@@ -3,50 +3,176 @@
 {% block title %}Perfil de {{ cliente.nombre }}{% endblock %}
 
 {% block content %}
-    <h2>Perfil del Cliente</h2>
-
-    <div class="profile-card">
-        <h3>{{ cliente.nombre }}</h3>
-        <p><strong>DNI:</strong> {{ cliente.dni }}</p>
-        <p><strong>Correo:</strong> {{ cliente.correo or 'No registrado' }}</p>
-        <p><strong>Celular:</strong> {{ cliente.celular or 'No registrado' }}</p>
-        <p><strong>Género:</strong> {{ cliente.genero or 'No registrado' }}</p>
-        <p><strong>Estado:</strong> <span class="status-{{ cliente.estado }}">{{ cliente.estado|capitalize }}</span></p>
+    <!-- Título y Botón Volver Centralizados -->
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: #004080; margin-bottom: 10px;">👤 Perfil del Cliente</h2>
+        <a href="{{ url_for('consulta') }}" style="text-decoration: none; color: #666; font-size: 0.9em;">← Volver a la lista</a>
     </div>
 
-    <h3>Historial de Pagos</h3>
-    <div class="table-container">
-        <table>
+    <!-- TARJETA PRINCIPAL -->
+    <div class="profile-card">
+        <div class="profile-header">
+            <h3 style="color: #004080; margin: 0;">{{ cliente.nombre }}</h3>
+            <div>
+                <span class="status-badge status-{{ cliente.estado }}">{{ cliente.estado|capitalize }}</span>
+                <span class="badge {% if cliente.estado_pago == 'DEUDA' %}bg-danger{% elif cliente.estado_pago == 'AL DIA' %}bg-success{% else %}bg-secondary{% endif %}">
+                    💳 {{ cliente.estado_pago }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="profile-details">
+            <p><strong>DNI:</strong> {{ cliente.dni or '--' }}</p>
+            <p><strong>Correo:</strong> {{ cliente.correo or '--' }}</p>
+            <p><strong>Celular:</strong> {{ cliente.celular or '--' }}</p>
+            <p><strong>Género:</strong> {{ cliente.genero or '--' }}</p>
+            
+            <!-- Datos Dinámicos conectados al último pago (CRM) -->
+            <p><strong>Curso Inscrito:</strong> {{ pagos[0].especialidad if pagos else '--' }}</p>
+            <p><strong>Asesor a cargo:</strong> {{ pagos[0].asesor if pagos else '--' }}</p>
+        </div>
+
+        <!-- RESUMEN FINANCIERO -->
+        <div class="finance-summary" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; gap: 40px;">
+            <div>
+                <small style="color: #666; display: block;">Monto Total del Curso</small>
+                <strong style="font-size: 1.2em;">S/ {{ "{:,.2f}".format(pagos[0].monto_total_diplomado) if pagos else '0.00' }}</strong>
+            </div>
+            <div>
+                <small style="color: #d63384; display: block;">Próxima Fecha de Pago</small>
+                <strong style="font-size: 1.2em; color: #d63384;">{{ pagos[0].proxima_fecha_pago if pagos and pagos[0].proxima_fecha_pago else 'Sin programar' }}</strong>
+            </div>
+            <div>
+                <small style="color: #666; display: block;">Última Cuota Pagada</small>
+                <strong style="font-size: 1.2em;">{{ pagos[0].numero_cuota if pagos else '--' }}</strong>
+            </div>
+        </div>
+
+        <div class="tags-section">
+            <strong>Etiquetas:</strong>
+            <div class="tags-container">
+                {% for etiqueta in etiquetas_cliente %}
+                    <span class="tag">
+                        {{ etiqueta.nombre }}
+                        <a href="{{ url_for('quitar_etiqueta', cliente_id=cliente.id, etiqueta_id=etiqueta.id) }}" class="remove-tag">×</a>
+                    </span>
+                {% else %}
+                    <span class="no-tags">Sin etiquetas.</span>
+                {% endfor %}
+            </div>
+            <form method="POST" class="tag-form">
+                <input type="hidden" name="form_type" value="etiqueta">
+                <input type="text" name="nombre_etiqueta" placeholder="+ Nueva etiqueta" autocomplete="off">
+                <button type="submit" class="btn-small">Añadir</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SECCIÓN CRM (Actividad) -->
+    <div class="crm-container">
+        <div class="crm-form-box">
+            <h3>Registrar Actividad</h3>
+            <form method="POST" class="crm-form">
+                <input type="hidden" name="form_type" value="seguimiento">
+                <label>Tipo de Contacto:</label>
+                <select name="tipo_interaccion" required>
+                    <option value="">-- Seleccionar --</option>
+                    <option value="Llamada">📞 Llamada</option>
+                    <option value="WhatsApp">💬 WhatsApp</option>
+                    <option value="Email">📧 Email</option>
+                    <option value="Reunión">🤝 Reunión</option>
+                    <option value="Tarea Interna">📝 Tarea Interna</option>
+                </select>
+                <label>Detalles / Notas:</label>
+                <textarea name="comentarios" placeholder="¿Qué se habló? ¿Qué quedó pendiente?" required></textarea>
+                <button type="submit" class="btn-save">Guardar Seguimiento</button>
+            </form>
+        </div>
+
+        <div class="crm-history-box">
+            <h3>Historial de Seguimientos</h3>
+            <div class="table-responsive">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Acción</th>
+                            <th>Estado</th>
+                            <th>Tipo</th>
+                            <th>Comentarios</th>
+                            <th>Fecha</th>
+                            <th>Asesor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in historial %}
+                        <tr>
+                            <td class="actions-cell">
+                                {% if item.estado == 'Por Atender' %}
+                                    <form action="{{ url_for('atender_seguimiento', seguimiento_id=item.id) }}" method="POST" style="display:inline;">
+                                        <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                        <button type="submit" class="btn-icon btn-check" title="Atendido">✅</button>
+                                    </form>
+                                {% endif %}
+                                <form action="{{ url_for('eliminar_seguimiento', seguimiento_id=item.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Borrar?');">
+                                    <input type="hidden" name="cliente_id" value="{{ cliente.id }}">
+                                    <button type="submit" class="btn-icon btn-trash" title="Eliminar">🗑️</button>
+                                </form>
+                            </td>
+                            <td style="text-align:center;">
+                                <span class="dot {% if item.estado == 'Atendido' %}dot-green{% else %}dot-orange{% endif %}"></span>
+                            </td>
+                            <td><strong>{{ item.tipo_interaccion }}</strong></td>
+                            <td class="text-wrap">{{ item.comentarios }}</td>
+                            <td><small>{{ item.fecha_creacion.strftime('%d/%m/%y') }}</small></td>
+                            <td><small>{{ item.asesor_nombre }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN FACTURACIÓN -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px;">
+        <h3 style="margin: 0;">💰 Historial de Pagos</h3>
+        {% if pagos %}
+        <!-- Botón Nueva Cuota con estilo minimalista (Outline) -->
+        <a href="{{ url_for('actualizar_pago', id=pagos[0].id) }}" 
+           style="text-decoration: none; color: #28a745; border: 1px solid #28a745; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.9em;">
+            + Registrar Nueva Cuota
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="table-container" style="margin-top: 15px;">
+        <table class="finance-table">
             <thead>
                 <tr>
-                    <th>ID Pago</th>
-                    <th>Fecha</th>
-                    <th>Cuota</th>
-                    <th>Tipo</th>
-                    <th>N° Operación</th>
-                    <th>Especialidad</th>
-                    <th>Asesor</th>
+                    <th>Fecha</th> 
+                    <th>Cuota N°</th> 
+                    <th>Monto Pagado</th> 
+                    <th>N° Operación</th> 
+                    <th>Vencimiento Prog.</th>
+                    <th>Cta. Destino</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for pago in pagos %}
-                <tr>
-                    <td>{{ pago.id }}</td>
-                    <td>{{ pago.fecha.strftime('%Y-%m-%d') if pago.fecha }}</td>
-                    <td>S/ {{ "%.2f"|format(pago.cuota or 0) }}</td>
-                    <td>{{ pago.tipo_de_cuota }}</td>
-                    <td>{{ pago.numero_operacion }}</td>
-                    <td>{{ pago.especialidad }}</td>
-                    <td>{{ pago.asesor }}</td>
+                <tr {% if loop.first and cliente.estado_pago == 'DEUDA' %}style="border-left: 5px solid #dc3545;"{% endif %}>
+                    <td>{{ pago.fecha.strftime('%Y-%m-%d') }}</td>
+                    <td style="text-align: center;"><b>{{ pago.numero_cuota if pago.numero_cuota != 0 else 'COMPLETO' }}</b></td>
+                    <td style="font-weight: bold; color: #28a745;">S/ {{ "%.2f"|format(pago.cuota) }}</td>
+                    <td><small>{{ pago.numero_operacion }}</small></td>
+                    <td style="color: #d63384; font-weight: bold;">{{ pago.proxima_fecha_pago or '---' }}</td>
+                    <td>{{ pago.destino }}</td>
                     <td class="actions">
-                        <a href="{{ url_for('editar', id=pago.id) }}" class="action-icon" title="Editar Pago">✏️</a>
+                        <a href="{{ url_for('editar', id=pago.id) }}" class="action-icon">✏️</a>
                     </td>
                 </tr>
                 {% else %}
-                <tr>
-                    <td colspan="8" style="text-align:center;">Este cliente no tiene pagos registrados.</td>
-                </tr>
+                <tr><td colspan="7" style="text-align:center; padding: 20px;">Sin pagos registrados.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -55,28 +181,42 @@
 
 {% block styles %}
 <style>
+    /* Estilos base unificados */
     .profile-card {
-        background: white;
-        padding: 25px;
-        border-radius: 10px;
-        max-width: 800px;
-        margin: 20px auto;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        background: white; padding: 25px; border-radius: 12px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 30px;
+        border-top: 5px solid #004080;
     }
-    .profile-card h3 {
-        color: #004080;
-        margin-top: 0;
-    }
-    .profile-card p {
-        margin: 5px 0;
-    }
-    .status-activo {
-        color: green;
-        font-weight: bold;
-    }
-    .status-inactivo {
-        color: red;
-        font-weight: bold;
-    }
+    .profile-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+    
+    .badge { padding: 4px 12px; border-radius: 50px; font-size: 0.85em; font-weight: 700; margin-left: 10px; color: white; display: inline-block; }
+    .bg-danger { background-color: #dc3545; }
+    .bg-success { background-color: #28a745; }
+    .bg-secondary { background-color: #6c757d; }
+
+    .status-badge { padding: 5px 15px; border-radius: 50px; font-size: 0.85em; font-weight: bold; color: white; }
+    .status-activo { background-color: #28a745; }
+    .status-potencial { background-color: #ffc107; color: #333; }
+    .status-inactivo { background-color: #dc3545; }
+
+    .profile-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+    
+    .tags-section { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px; }
+    .tag { background: #004080; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; margin-right: 5px; }
+    
+    .crm-container { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
+    .crm-form-box, .crm-history-box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .crm-form-box { flex: 1; min-width: 300px; }
+    .crm-history-box { flex: 2; min-width: 500px; }
+
+    .finance-table { width: 100%; border-collapse: collapse; background: white; }
+    .finance-table th { background: #004080; color: white; padding: 12px; text-align: left; }
+    .finance-table td { padding: 12px; border-bottom: 1px solid #eee; }
+
+    .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
+    .dot-green { background-color: #28a745; }
+    .dot-orange { background-color: #fd7e14; animation: pulse 2s infinite; }
+    
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 </style>
 {% endblock %}

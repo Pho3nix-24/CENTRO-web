@@ -3,79 +3,117 @@
 {% block title %}Editar Registro{% endblock %}
 
 {% block content %}
-    <h2>Editar Registro</h2>
-    <form method="POST">
-        <a href="{{ url_for('consulta', query=query) }}" class="back-link">← Volver a la consulta</a>
+<div style="max-width: 900px; margin: 0 auto; padding: 20px;">
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: #004080; margin-bottom: 10px;">✏️ Editar Registro de Pago</h2>
+        <a href="{{ url_for('consulta', query=query) }}" style="text-decoration: none; color: #666; font-size: 0.9em;">← Volver a la consulta</a>
+    </div>
 
-        {% for label, field in labels_and_fields %}
-            <label>{{ label }}</label>
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-top: 5px solid #ff6600;">
+        <form method="POST">
+            <input type="hidden" name="query" value="{{ query }}">
             
-            {# --- Lógica para mostrar el campo correcto según el tipo --- #}
-            
-            {% if field == 'especialidad' %}
-                <select name="{{ field }}" required>
-                    <option value="">Seleccione una especialidad</option>
-                    <option value="CSS" {% if data[field]=='CSS' %}selected{% endif %}>CSS</option>
-                    <option value="CYT" {% if data[field]=='CYT' %}selected{% endif %}>CYT</option>
-                    <option value="Comunicación" {% if data[field]=='Comunicación' %}selected{% endif %}>Comunicación</option>
-                    <option value="DPCC" {% if data[field]=='DPCC' %}selected{% endif %}>DPCC</option>
-                    <option value="Ed. Física" {% if data[field]=='Ed. Física' %}selected{% endif %}>Ed. Física</option>
-                    <option value="Matemática" {% if data[field]=='Matemática' %}selected{% endif %}>Matemática</option>
-                    <option value="Inicial" {% if data[field]=='Inicial' %}selected{% endif %}>Inicial</option>
-                    <option value="Primaria" {% if data[field]=='Primaria' %}selected{% endif %}>Primaria</option>
-                </select>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                <div>
+                    <label>Fecha de pago</label>
+                    <input type="date" name="fecha" value="{{ data.fecha.strftime('%Y-%m-%d') if data.fecha and data.fecha is not string else data.fecha }}" required>
 
-            {% elif field == 'modalidad' %}
-                <select name="{{ field }}" required>
-                    <option value="">Seleccione</option>
-                    <option value="Nombramiento" {% if data[field]=='Nombramiento' %}selected{% endif %}>Nombramiento</option>
-                    <option value="Ascenso" {% if data[field]=='Ascenso' %}selected{% endif %}>Ascenso</option>
-                    <option value="Ascenso + Cargos" {% if data[field]=='Ascenso + Cargos' %}selected{% endif %}>Ascenso + Cargos</option>
-                    <option value="Cargos directivos" {% if data[field]=='Cargos directivos' %}selected{% endif %}>Cargos directivos</option>
-                    <option value="Maratón" {% if data[field]=='Maratón' %}selected{% endif %}>Maratón</option>
-                    <option value="Maratón + Ascenso" {% if data[field]=='Maratón + Ascenso' %}selected{% endif %}>Maratón + Ascenso</option>
-                </select>
+                    <label>Nombre del Cliente</label>
+                    <input type="text" name="cliente" value="{{ data.cliente }}" required>
 
-            {% elif field == 'destino' %}
-                <select name="{{ field }}">
-                    <option value="">Seleccione un destino</option>
-                    <option value="Laly" {% if data[field]=='Laly' %}selected{% endif %}>Laly</option>
-                    <option value="Darcing" {% if data[field]=='Darcing' %}selected{% endif %}>Darcing</option>
-                    <option value="CECP" {% if data[field]=='CECP' %}selected{% endif %}>CECP</option>
-                    <option value="Keila" {% if data[field]=='Keila' %}selected{% endif %}>Keila</option>
-                </select>
+                    <label>DNI</label>
+                    <input type="text" name="dni" value="{{ data.dni }}" required>
 
-            {% elif field == 'tipo_de_cuota' %}
-                <select name="{{ field }}" required>
-                    <option value="">Seleccione</option>
-                    <option value="1" {% if data[field]|string == '1' %}selected{% endif %}>1</option>
-                    <option value="2" {% if data[field]|string == '2' %}selected{% endif %}>2</option>
-                    <option value="Completo" {% if data[field]|string == 'Completo' %}selected{% endif %}>Completo</option>
-                </select>
+                    <label>Género</label>
+                    <select name="genero">
+                        <option value="Masculino" {% if data.genero == 'Masculino' %}selected{% endif %}>Masculino</option>
+                        <option value="Femenino" {% if data.genero == 'Femenino' %}selected{% endif %}>Femenino</option>
+                        <option value="Otro" {% if data.genero == 'Otro' %}selected{% endif %}>Otro</option>
+                    </select>
 
-            {% elif field == 'genero' %}
-                <select name="{{ field }}" required>
-                    <option value="">Seleccione</option>
-                    <option value="Masculino" {% if data[field]=='Masculino' %}selected{% endif %}>M</option>
-                    <option value="Femenino" {% if data[field]=='Femenino' %}selected{% endif %}>F</option>
-                    <option value="Otro" {% if data[field]=='Otro' %}selected{% endif %}>Otro</option>
-                </select>
-                
-            {% elif field == 'fecha' %}
-                <input type="date" name="{{ field }}" value="{{ data[field].strftime('%Y-%m-%d') if data[field] else '' }}">
+                    <label>Celular</label>
+                    <input type="tel" name="celular" value="{{ data.celular }}">
 
-            {% elif field == 'cuota' %}
-                <input type="number" step="0.01" name="{{ field }}" value="{{ data[field] or '' }}">
+                    <label>Correo Electrónico</label>
+                    <input type="email" name="correo" value="{{ data.correo }}">
+                </div>
 
-            {% elif field == 'correo' %}
-                <input type="email" name="{{ field }}" value="{{ data[field] or '' }}">
-                
-            {% else %}
-                <input type="text" name="{{ field }}" value="{{ data[field] or '' }}">
+                <div>
+                    <label>Especialidad</label>
+                    <select name="especialidad">
+                        {% for esp in ["CSS", "CYT", "Comunicación", "DPCC", "Ed. Física", "Matemática", "Inicial", "Primaria", "EPT", "Inglés"] %}
+                        <option value="{{ esp }}" {% if data.especialidad == esp %}selected{% endif %}>{{ esp }}</option>
+                        {% endfor %}
+                    </select>
 
-            {% endif %}
-        {% endfor %}
-        <input type="hidden" name="query" value="{{ query }}">
-        <button type="submit">Guardar Cambios</button>
-    </form>
+                    <label>Modalidad</label>
+                    <select name="modalidad">
+                        {% for mod in ["Nombramiento", "Ascenso", "Maratón", "Planificación"] %}
+                        <option value="{{ mod }}" {% if data.modalidad == mod %}selected{% endif %}>{{ mod }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label style="color: #d63384; font-weight: bold;">Monto Total del Curso (S/):</label>
+                    <input type="number" name="monto_total_diplomado" step="0.01" value="{{ data.monto_total_diplomado }}" required>
+
+                    <label>Monto Pagado en esta cuota (S/):</label>
+                    <input type="number" name="cuota" step="0.01" value="{{ data.cuota }}" required>
+
+                    <label>¿Qué cuota es?</label>
+                    <select name="numero_cuota">
+                        <option value="1" {% if data.numero_cuota == 1 %}selected{% endif %}>Cuota 1</option>
+                        <option value="2" {% if data.numero_cuota == 2 %}selected{% endif %}>Cuota 2</option>
+                        <option value="3" {% if data.numero_cuota == 3 %}selected{% endif %}>Cuota 3</option>
+                        <option value="0" {% if data.numero_cuota == 0 %}selected{% endif %}>Pago Completo</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                <div>
+                    <label style="color: #007bff; font-weight: bold;">📅 Próxima Fecha de Pago:</label>
+                    <input type="date" name="proxima_fecha_pago" value="{{ data.proxima_fecha_pago.strftime('%Y-%m-%d') if data.proxima_fecha_pago and data.proxima_fecha_pago is not string else data.proxima_fecha_pago }}">
+                </div>
+                <div>
+                    <label>N° Operación (Voucher)</label>
+                    <input type="text" name="numero_operacion" value="{{ data.numero_operacion }}" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 15px;">
+                <div>
+                    <label>Método de pago</label>
+                    <select name="tipo_de_cuota">
+                        <option value="Yape" {% if data.tipo_de_cuota == 'Yape' %}selected{% endif %}>Yape</option>
+                        <option value="Plin" {% if data.tipo_de_cuota == 'Plin' %}selected{% endif %}>Plin</option>
+                        <option value="BCP" {% if data.tipo_de_cuota == 'BCP' %}selected{% endif %}>Banco de Crédito</option>
+                        <option value="Banco de la Nación" {% if data.tipo_de_cuota == 'Banco de la Nación' %}selected{% endif %}>Banco de la Nación</option>
+                        <option value="Interbank" {% if data.tipo_de_cuota == 'Interbank' %}selected{% endif %}>Interbank</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Cta. Destino</label>
+                    <select name="destino">
+                        <option value="Laly" {% if data.destino == 'Laly' %}selected{% endif %}>Laly</option>
+                        <option value="Darcing" {% if data.destino == 'Darcing' %}selected{% endif %}>Darcing</option>
+                        <option value="CECP" {% if data.destino == 'CECP' %}selected{% endif %}>CECP</option>
+                        <option value="Keila" {% if data.destino == 'Keila' %}selected{% endif %}>Keila</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <label>Asesor(a) responsable:</label>
+                <input type="text" name="asesor" value="{{ data.asesor }}" required>
+            </div>
+
+            <button type="submit" style="background: #ff6600; width: 100%; margin-top: 30px; font-size: 1.2em; padding: 15px; border-radius: 8px; color: white; border: none; cursor: pointer;">
+                💾 Guardar Cambios
+            </button>
+        </form>
+    </div>
+</div>
 {% endblock %}
